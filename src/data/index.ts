@@ -131,7 +131,10 @@ const createOrder = (
     name: customer_name,
     email: '',
     phone: '',
-    company: ''
+    company: '',
+    orders_count: 0,
+    total_revenue: 0,
+    tier: 'bronze' as const
   }
   
   return {

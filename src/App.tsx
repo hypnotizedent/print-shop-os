@@ -38,6 +38,21 @@ function mapImprintType(type: string): ImprintMethod {
   return typeMap[type] || 'screen-print';
 }
 
+// Map API imprint location to component location type
+function mapImprintLocation(location: string): 'Front' | 'Back' | 'Left Chest' | 'Right Sleeve' | 'Left Sleeve' | 'Neck' {
+  const locationMap: Record<string, 'Front' | 'Back' | 'Left Chest' | 'Right Sleeve' | 'Left Sleeve' | 'Neck'> = {
+    'Front Center': 'Front',
+    'Front': 'Front',
+    'Back Center': 'Back',
+    'Back': 'Back',
+    'Left Chest': 'Left Chest',
+    'Right Sleeve': 'Right Sleeve',
+    'Left Sleeve': 'Left Sleeve',
+    'Neck': 'Neck'
+  };
+  return locationMap[location] || 'Front';
+}
+
 function App() {
   const { orders: apiOrders, loading: ordersLoading } = useOrders({ limit: 100 });
   const { customers: apiCustomers, loading: customersLoading } = useCustomers({ limit: 100 });
@@ -70,7 +85,7 @@ function App() {
       imprints: li.imprints.map(imp => ({
         id: imp.id,
         line_item_id: li.id,
-        location: imp.location as 'Front' | 'Back' | 'Left Chest' | 'Right Sleeve' | 'Left Sleeve' | 'Neck',
+        location: mapImprintLocation(imp.location),
         method: mapImprintType(imp.type),
         colors: imp.colors,
         width: imp.width,
@@ -95,7 +110,12 @@ function App() {
     email: c.email,
     phone: c.phone,
     company: c.company,
-    address: c.address || { street: '', city: '', state: '', zip: '' },
+    address: {
+      street: c.address?.street || '',
+      city: c.address?.city || '',
+      state: c.address?.state || '',
+      zip: c.address?.zip || ''
+    },
     tier: c.tier || 'bronze' as const,
     orders_count: c.orders_count || 0,
     total_revenue: c.total_revenue || 0
