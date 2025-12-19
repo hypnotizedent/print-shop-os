@@ -85,7 +85,7 @@ export function useProductionStats() {
 }
 
 // =============================================================================
-// useOrders - Fetch and manage orders list
+// useOrders - Fetch and manage orders list (legacy, uses transforms)
 // =============================================================================
 
 export function useOrders(options?: { limit?: number; status?: string }) {
@@ -107,6 +107,80 @@ export function useOrders(options?: { limit?: number; status?: string }) {
       setLoading(false)
     }
   }, [options?.limit, options?.status])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  return { orders, total, loading, error, refetch: load }
+}
+
+// =============================================================================
+// APIOrder type for direct API responses
+// =============================================================================
+
+export interface OrderListItem {
+  id: number
+  visual_id: string
+  order_nickname: string | null
+  status: string
+  printavo_status_name: string
+  customer_name: string
+  total_amount: number
+  due_date: string | null
+  artwork_count: number
+}
+
+// =============================================================================
+// useOrdersList - Fetch orders directly from API with pagination
+// =============================================================================
+
+export function useOrdersList(options?: {
+  limit?: number
+  offset?: number
+  status?: string
+}) {
+  const [orders, setOrders] = useState<OrderListItem[]>([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const params = new URLSearchParams()
+      if (options?.limit) params.set('limit', String(options.limit))
+      if (options?.offset) params.set('offset', String(options.offset))
+      if (options?.status && options.status !== 'all') params.set('status', options.status)
+
+      const response = await fetch(`${API_BASE_URL}/api/orders?${params}`)
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`)
+      }
+      const data = await response.json()
+
+      // Map API response to our type
+      const mappedOrders: OrderListItem[] = (data.orders || []).map((o: any) => ({
+        id: o.id,
+        visual_id: o.visual_id || String(o.id),
+        order_nickname: o.order_nickname || o.nickname || null,
+        status: o.status || 'unknown',
+        printavo_status_name: o.printavo_status_name || o.status || '',
+        customer_name: o.customer_name || 'Unknown',
+        total_amount: parseFloat(o.total_amount) || parseFloat(o.total) || 0,
+        due_date: o.due_date || null,
+        artwork_count: o.artwork_count || 0,
+      }))
+
+      setOrders(mappedOrders)
+      setTotal(data.total || mappedOrders.length)
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch orders'))
+    } finally {
+      setLoading(false)
+    }
+  }, [options?.limit, options?.offset, options?.status])
 
   useEffect(() => {
     load()

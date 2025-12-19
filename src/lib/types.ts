@@ -19,7 +19,24 @@ export interface Customer {
   total_revenue: number;
 }
 
+// Legacy status types (for existing components)
 export type OrderStatus = 'QUOTE' | 'NEW' | 'ART APPROVAL' | 'IN PRODUCTION' | 'COMPLETE' | 'SHIPPED';
+
+// API status types (matching production-stats categories)
+export type APIOrderStatus = 'quote' | 'art' | 'screenprint' | 'embroidery' | 'dtg' | 'fulfillment' | 'complete';
+
+// Simplified order type matching API response
+export interface APIOrder {
+  id: number;
+  visual_id: string;
+  order_nickname: string | null;
+  status: string;
+  printavo_status_name: string;
+  customer_name: string;
+  total_amount: number;
+  due_date: string | null;
+  artwork_count: number;
+}
 
 export type ImprintLocation = 'Front' | 'Back' | 'Left Chest' | 'Right Sleeve' | 'Left Sleeve' | 'Neck';
 export type ImprintMethod = 'screen-print' | 'dtg' | 'embroidery' | 'vinyl' | 'digital-transfer';

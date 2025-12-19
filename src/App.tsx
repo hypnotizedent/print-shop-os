@@ -165,8 +165,7 @@ function App() {
         );
       case 'orders':
         return (
-          <OrdersList 
-            orders={orders}
+          <OrdersList
             onViewOrder={handleViewOrder}
           />
         );
