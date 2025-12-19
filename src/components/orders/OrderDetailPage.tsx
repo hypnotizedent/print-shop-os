@@ -374,32 +374,57 @@ function LineItemCard({ item, index, orderStatus }: LineItemCardProps) {
 
   return (
     <div className="p-4 bg-secondary/30 rounded-lg space-y-4">
-      <div className="flex items-start justify-between">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-xs bg-muted px-2 py-0.5 rounded">#{index + 1}</span>
-            <h4 className="font-medium truncate">
-              {item.description || item.styleNumber || 'Line Item'}
-            </h4>
+      <div className="flex items-start gap-4">
+        {/* Mockup Thumbnail */}
+        {item.mockup ? (
+          <a
+            href={item.mockup.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-card border border-border hover:border-primary transition-colors"
+          >
+            <img
+              src={item.mockup.url}
+              alt={item.mockup.name}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
+          </a>
+        ) : (
+          <div className="flex-shrink-0 w-20 h-20 rounded-lg bg-muted/50 border border-border flex items-center justify-center">
+            <Image className="w-6 h-6 text-muted-foreground/50" weight="duotone" />
           </div>
-          <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground flex-wrap">
-            {item.styleNumber && <span>{item.styleNumber}</span>}
-            {item.styleNumber && item.color && <span>•</span>}
-            {item.color && <span>{item.color}</span>}
-            {item.category && (
-              <>
-                <span>•</span>
-                <Badge variant="outline" className="text-xs">
-                  {item.category}
-                </Badge>
-              </>
-            )}
+        )}
+
+        <div className="flex-1 min-w-0 flex items-start justify-between">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs bg-muted px-2 py-0.5 rounded">#{index + 1}</span>
+              <h4 className="font-medium truncate">
+                {item.description || item.styleNumber || 'Line Item'}
+              </h4>
+            </div>
+            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground flex-wrap">
+              {item.styleNumber && <span>{item.styleNumber}</span>}
+              {item.styleNumber && item.color && <span>•</span>}
+              {item.color && <span>{item.color}</span>}
+              {item.category && (
+                <>
+                  <span>•</span>
+                  <Badge variant="outline" className="text-xs">
+                    {item.category}
+                  </Badge>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-        <div className="text-right ml-4">
-          <div className="font-medium">{formatCurrency(item.totalCost)}</div>
-          <div className="text-sm text-muted-foreground">
-            {item.totalQuantity} × {formatCurrency(item.unitCost)}
+          <div className="text-right ml-4">
+            <div className="font-medium">{formatCurrency(item.totalCost)}</div>
+            <div className="text-sm text-muted-foreground">
+              {item.totalQuantity} × {formatCurrency(item.unitCost)}
+            </div>
           </div>
         </div>
       </div>

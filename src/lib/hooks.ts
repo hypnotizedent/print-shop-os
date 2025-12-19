@@ -193,6 +193,12 @@ export function useOrdersList(options?: {
 // Order Detail Types
 // =============================================================================
 
+export interface LineItemMockup {
+  id: string
+  url: string
+  name: string
+}
+
 export interface OrderDetailLineItem {
   id: number
   styleNumber: string | null
@@ -214,6 +220,7 @@ export interface OrderDetailLineItem {
     xxxxxl: number
     other: number
   }
+  mockup: LineItemMockup | null
 }
 
 export interface OrderDetailCustomer {
@@ -329,6 +336,11 @@ export function useOrderDetail(visualId: string | null) {
             xxxxxl: li.sizes?.xxxxxl || li.size_5_xl || 0,
             other: li.sizes?.other || li.size_other || 0,
           },
+          mockup: li.mockup ? {
+            id: li.mockup.id,
+            url: li.mockup.url,
+            name: li.mockup.name,
+          } : null,
         })),
       }
 
