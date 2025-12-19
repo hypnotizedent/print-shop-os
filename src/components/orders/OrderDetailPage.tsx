@@ -179,36 +179,38 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
             </CardContent>
           </Card>
 
-          {/* Artwork Files */}
-          {order.artworkFiles.length > 0 && (
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-base font-medium flex items-center gap-2">
-                  <Image className="w-4 h-4" weight="bold" />
-                  Artwork Files ({order.artworkFiles.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-2">
-                  {order.artworkFiles.map((file) => (
-                    <a
-                      key={file.id}
-                      href={file.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors"
-                    >
-                      <Image className="w-5 h-5 text-muted-foreground" weight="bold" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{file.name}</p>
-                        <p className="text-xs text-muted-foreground">{file.source}</p>
-                      </div>
-                    </a>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          {/* Production Files - only show productionFile source, not line item mockups */}
+          {(() => {
+            const productionFiles = order.artworkFiles.filter(f => f.source === 'productionFile');
+            return productionFiles.length > 0 && (
+              <Card className="bg-card border-border">
+                <CardHeader>
+                  <CardTitle className="text-base font-medium flex items-center gap-2">
+                    <FileText className="w-4 h-4" weight="bold" />
+                    Production Files ({productionFiles.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-2">
+                    {productionFiles.map((file) => (
+                      <a
+                        key={file.id}
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors"
+                      >
+                        <FileText className="w-5 h-5 text-muted-foreground" weight="bold" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{file.name}</p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })()}
 
           {/* Production Notes */}
           {order.productionNotes && (
