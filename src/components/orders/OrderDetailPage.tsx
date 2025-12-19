@@ -172,9 +172,22 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
                   No line items
                 </p>
               ) : (
-                order.lineItems.map((item, index) => (
-                  <LineItemCard key={item.id} item={item} index={index} orderStatus={order.status} />
-                ))
+                (() => {
+                  // Extract imprint mockups sorted by ID for position matching
+                  const imprintMockups = order.artworkFiles
+                    .filter(f => f.source === 'imprintMockup')
+                    .sort((a, b) => parseInt(a.id) - parseInt(b.id));
+
+                  return order.lineItems.map((item, index) => (
+                    <LineItemCard
+                      key={item.id}
+                      item={item}
+                      index={index}
+                      orderStatus={order.status}
+                      imprintMockup={imprintMockups[index] || null}
+                    />
+                  ));
+                })()
               )}
             </CardContent>
           </Card>
@@ -362,11 +375,12 @@ interface LineItemCardProps {
   item: OrderDetailLineItem;
   index: number;
   orderStatus: string;
+  imprintMockup: { id: string; url: string; name: string } | null;
 }
 
 const SIZE_LABELS: (keyof SizeBreakdown)[] = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 
-function LineItemCard({ item, index, orderStatus }: LineItemCardProps) {
+function LineItemCard({ item, index, orderStatus, imprintMockup }: LineItemCardProps) {
   const sizes = mapSizesToGrid(item.sizes);
   const total = item.totalQuantity;
   const hasOtherSizes = (item.sizes.xxxxl || 0) + (item.sizes.xxxxxl || 0) + (item.sizes.other || 0) > 0;
@@ -476,18 +490,35 @@ function LineItemCard({ item, index, orderStatus }: LineItemCardProps) {
           Imprint
         </p>
         <div className="p-3 bg-card rounded border border-border">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                Front
-              </Badge>
-              <Badge variant="secondary" className="text-xs bg-primary/20 text-primary">
-                {getMethodLabel(imprintMethod)}
-              </Badge>
+          <div className="flex items-center gap-3">
+            {/* Imprint Mockup Thumbnail */}
+            {imprintMockup && (
+              <a
+                href={imprintMockup.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-shrink-0"
+              >
+                <img
+                  src={imprintMockup.url}
+                  alt="Imprint mockup"
+                  className="w-12 h-12 object-cover rounded border border-border hover:opacity-80 transition-opacity"
+                />
+              </a>
+            )}
+            <div className="flex items-center justify-between flex-1">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">
+                  Front
+                </Badge>
+                <Badge variant="secondary" className="text-xs bg-primary/20 text-primary">
+                  {getMethodLabel(imprintMethod)}
+                </Badge>
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {imprintMockup ? 'View mockup' : 'Standard placement'}
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground">
-              Standard placement
-            </span>
           </div>
         </div>
       </div>
