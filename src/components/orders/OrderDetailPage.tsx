@@ -40,45 +40,57 @@ function PdfThumbnail({
   className?: string;
 }) {
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
   
-  // Reset thumbnailFailed state when thumbnailUrl changes
+  // Reset state when thumbnailUrl changes
   useEffect(() => {
     setThumbnailFailed(false);
+    setImgLoaded(false);
   }, [thumbnailUrl]);
   
-  const iconSize = size === 'small' ? 24 : 32;
-  const containerClasses = size === 'small' 
-    ? 'flex-shrink-0 w-12 h-12 rounded border border-border hover:border-primary transition-colors'
-    : 'flex-shrink-0 w-20 h-20 rounded-lg border border-border hover:border-primary transition-colors';
+  const iconSize = size === 'small' ? 20 : 28;
+  const dimensions = size === 'small' 
+    ? 'w-16 h-16'
+    : 'w-24 h-24';
   
-  // Show PDF icon if no thumbnail or if thumbnail failed to load
-  if (!thumbnailUrl || thumbnailFailed) {
-    return (
-      <a
-        href={pdfUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`${containerClasses} flex items-center justify-center bg-muted/50 ${className}`}
-      >
-        <FilePdf size={iconSize} className="text-red-400" weight="fill" />
-      </a>
-    );
-  }
+  const hasThumbnail = thumbnailUrl && !thumbnailFailed;
   
-  // Show thumbnail image
   return (
     <a
       href={pdfUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`${containerClasses} overflow-hidden bg-card ${className}`}
+      className={`${dimensions} flex-shrink-0 rounded-lg border-2 border-border hover:border-primary transition-all hover:shadow-lg overflow-hidden relative bg-card group ${className}`}
+      title={`Open ${name} (PDF)`}
     >
-      <img
-        src={thumbnailUrl}
-        alt={name}
-        className="w-full h-full object-cover"
-        onError={() => setThumbnailFailed(true)}
-      />
+      {hasThumbnail ? (
+        <>
+          <img
+            src={thumbnailUrl}
+            alt={name}
+            className={`w-full h-full object-cover transition-all duration-200 group-hover:scale-105 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={() => setImgLoaded(true)}
+            onError={() => {
+              setThumbnailFailed(true);
+              setImgLoaded(false);
+            }}
+          />
+          {!imgLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-muted/50">
+              <FilePdf size={iconSize} className="text-red-400/50 animate-pulse" weight="fill" />
+            </div>
+          )}
+          {/* PDF indicator badge */}
+          <div className="absolute bottom-1 right-1 px-1.5 py-0.5 bg-red-500 rounded text-white text-[10px] font-bold uppercase shadow-md">
+            PDF
+          </div>
+        </>
+      ) : (
+        <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 group-hover:from-red-100 group-hover:to-red-200 dark:group-hover:from-red-900/30 dark:group-hover:to-red-800/30 transition-all">
+          <FilePdf size={iconSize} className="text-red-500 mb-1 group-hover:scale-110 transition-transform" weight="fill" />
+          <span className="text-[10px] text-red-600 dark:text-red-400 uppercase font-bold tracking-wide">PDF</span>
+        </div>
+      )}
     </a>
   );
 }
@@ -668,16 +680,16 @@ function LineItemCard({ item, index, orderStatus, imprintMockups, onImageClick }
       </div>
 
       {/* Imprints Section */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
           <Printer className="w-3 h-3" weight="bold" />
-          Imprint
+          Imprint Mockups
         </p>
-        <div className="p-3 bg-card rounded border border-border">
-          <div className="flex flex-col gap-3">
-            {/* Imprint Mockup Thumbnails - Show ALL mockups */}
-            {imprintMockups.length > 0 && (
-              <div className="flex gap-2 flex-wrap">
+        <div className="p-4 bg-card rounded-lg border border-border">
+          <div className="flex flex-col gap-4">
+            {/* Imprint Mockup Thumbnails - Show ALL mockups in a grid */}
+            {imprintMockups.length > 0 ? (
+              <div className="flex gap-3 flex-wrap">
                 {imprintMockups.map((mockup, idx) => (
                   isPdfUrl(mockup.url) ? (
                     <PdfThumbnail
@@ -685,18 +697,18 @@ function LineItemCard({ item, index, orderStatus, imprintMockups, onImageClick }
                       thumbnailUrl={mockup.thumbnail_url}
                       pdfUrl={mockup.url}
                       name={mockup.name || 'Imprint mockup'}
-                      size="small"
+                      size="large"
                     />
                   ) : (
                     <button
                       key={mockup.id}
                       onClick={() => onImageClick?.(imprintMockups.filter(m => !isPdfUrl(m.url)), idx)}
-                      className="flex-shrink-0 cursor-pointer"
+                      className="flex-shrink-0 cursor-pointer group"
                     >
                       <img
                         src={mockup.url}
                         alt={mockup.name || 'Imprint mockup'}
-                        className="w-16 h-16 object-contain rounded bg-muted border border-border hover:border-primary transition-colors"
+                        className="w-24 h-24 object-contain rounded-lg bg-muted border-2 border-border hover:border-primary transition-all hover:shadow-lg group-hover:scale-105"
                         onError={(e) => {
                           (e.target as HTMLImageElement).style.display = 'none';
                         }}
@@ -704,6 +716,13 @@ function LineItemCard({ item, index, orderStatus, imprintMockups, onImageClick }
                     </button>
                   )
                 ))}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center py-8 text-muted-foreground">
+                <div className="text-center">
+                  <Image className="w-12 h-12 mx-auto mb-2 opacity-30" weight="duotone" />
+                  <p className="text-sm">No imprint mockups available</p>
+                </div>
               </div>
             )}
             <div className="flex items-center gap-2">
