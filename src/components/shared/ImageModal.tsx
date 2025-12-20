@@ -1,15 +1,5 @@
 import { useState, useEffect } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { X, ArrowLeft, ArrowRight } from '@phosphor-icons/react';
-import { Button } from '@/components/ui/button';
-
-// Placeholder image for failed loads
-const ERROR_IMAGE_PLACEHOLDER = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="200" height="200"%3E%3Crect fill="%23333" width="200" height="200"/%3E%3Ctext fill="%23999" x="50%25" y="50%25" dominant-baseline="middle" text-anchor="middle"%3EImage Not Found%3C/text%3E%3C/svg%3E';
 
 interface ImageModalProps {
   isOpen: boolean;
@@ -43,11 +33,16 @@ export function ImageModal({ isOpen, onClose, images, currentIndex, onNavigate }
       }
     };
 
+    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.body.style.overflow = '';
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen, index, images.length, onClose, onNavigate]);
 
-  if (!images[index]) return null;
+  if (!isOpen || !images[index]) return null;
 
   const currentImage = images[index];
   const hasPrevious = index > 0;
@@ -69,69 +64,69 @@ export function ImageModal({ isOpen, onClose, images, currentIndex, onNavigate }
     }
   };
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 overflow-hidden">
-        <div className="relative bg-black/90 flex flex-col">
-          {/* Header */}
-          <DialogHeader className="p-4 bg-card/95 backdrop-blur-sm border-b border-border">
-            <div className="flex items-center justify-between">
-              <DialogTitle className="text-base font-medium truncate pr-4">
-                {currentImage.name}
-              </DialogTitle>
-              <button
-                onClick={onClose}
-                className="rounded-sm opacity-70 hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-              >
-                <X className="h-4 w-4" />
-                <span className="sr-only">Close</span>
-              </button>
-            </div>
-            {images.length > 1 && (
-              <div className="text-xs text-muted-foreground">
-                {index + 1} of {images.length}
-              </div>
-            )}
-          </DialogHeader>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-200"
+      onClick={handleBackdropClick}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary"
+        aria-label="Close"
+      >
+        <X className="w-5 h-5" weight="bold" />
+      </button>
 
-          {/* Image Container */}
-          <div className="relative flex items-center justify-center p-4 min-h-[400px] max-h-[calc(95vh-80px)]">
-            <img
-              src={currentImage.url}
-              alt={currentImage.name}
-              className="max-w-full max-h-full object-contain"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = ERROR_IMAGE_PLACEHOLDER;
-              }}
-            />
-
-            {/* Navigation Arrows */}
-            {images.length > 1 && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handlePrevious}
-                  disabled={!hasPrevious}
-                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-card/80 hover:bg-card backdrop-blur-sm"
-                >
-                  <ArrowLeft className="w-5 h-5" weight="bold" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleNext}
-                  disabled={!hasNext}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-card/80 hover:bg-card backdrop-blur-sm"
-                >
-                  <ArrowRight className="w-5 h-5" weight="bold" />
-                </Button>
-              </>
-            )}
-          </div>
+      {images.length > 1 && (
+        <div className="absolute top-4 left-4 z-10 px-3 py-1.5 rounded-full bg-black/50 text-white text-sm font-medium">
+          {index + 1} / {images.length}
         </div>
-      </DialogContent>
-    </Dialog>
+      )}
+
+      <div className="relative max-w-[90vw] max-h-[90vh] flex flex-col items-center animate-in zoom-in-95 duration-300">
+        <img
+          src={currentImage.url}
+          alt={currentImage.name}
+          className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+          onError={(e) => {
+            const target = e.target as HTMLImageElement;
+            target.style.display = 'none';
+          }}
+        />
+        
+        {currentImage.name && (
+          <div className="mt-4 px-4 py-2 rounded-lg bg-black/50 backdrop-blur-sm text-white text-sm max-w-full truncate">
+            {currentImage.name}
+          </div>
+        )}
+      </div>
+
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={handlePrevious}
+            disabled={!hasPrevious}
+            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Previous image"
+          >
+            <ArrowLeft className="w-6 h-6" weight="bold" />
+          </button>
+          <button
+            onClick={handleNext}
+            disabled={!hasNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-black/50 hover:bg-black/70 text-white transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:scale-110 focus:outline-none focus:ring-2 focus:ring-primary"
+            aria-label="Next image"
+          >
+            <ArrowRight className="w-6 h-6" weight="bold" />
+          </button>
+        </>
+      )}
+    </div>
   );
 }
