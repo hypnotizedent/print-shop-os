@@ -278,30 +278,32 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
 
       {/* Compact Info Bar - Customer, Dates, Payment */}
       <Card className="bg-card/50 border-border">
-        <CardContent className="p-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:divide-x md:divide-border">
+        <CardContent className="py-2 px-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:divide-x md:divide-border">
             {/* Customer */}
             <div className="flex items-start gap-2">
-              <User className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" weight="bold" />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Customer</p>
+              <User className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" weight="bold" />
+              <div className="min-w-0 flex-1 space-y-0.5">
                 <button
                   onClick={() => onViewCustomer(String(order.customer.id))}
-                  className="text-sm font-medium text-primary hover:underline text-left truncate block w-full"
+                  className="text-sm font-medium text-primary hover:underline text-left truncate block w-full leading-tight"
                 >
                   {order.customer.name}
+                  {order.customer.company && (
+                    <span className="text-muted-foreground font-normal"> · {order.customer.company}</span>
+                  )}
                 </button>
-                {order.customer.company && (
-                  <p className="text-xs text-muted-foreground truncate">{order.customer.company}</p>
-                )}
-                <div className="flex flex-col gap-0.5 mt-1">
+                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
                   {order.customer.email && (
-                    <a href={`mailto:${order.customer.email}`} className="text-xs text-muted-foreground hover:text-foreground truncate">
-                      {order.customer.email}
-                    </a>
+                    <>
+                      <a href={`mailto:${order.customer.email}`} className="hover:text-foreground truncate">
+                        {order.customer.email}
+                      </a>
+                      {order.customer.phone && <span>•</span>}
+                    </>
                   )}
                   {order.customer.phone && (
-                    <a href={`tel:${order.customer.phone}`} className="text-xs text-muted-foreground hover:text-foreground">
+                    <a href={`tel:${order.customer.phone}`} className="hover:text-foreground whitespace-nowrap">
                       {order.customer.phone}
                     </a>
                   )}
@@ -310,20 +312,21 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
             </div>
 
             {/* Dates */}
-            <div className="flex items-start gap-2 md:pl-4">
-              <Calendar className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" weight="bold" />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Dates</p>
-                <div className="space-y-1 text-xs">
+            <div className="flex items-start gap-2 md:pl-3">
+              <Calendar className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" weight="bold" />
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <div className="flex items-center justify-between gap-2 text-[11px]">
                   {order.createdAt && (
-                    <div className="flex justify-between gap-2">
+                    <>
                       <span className="text-muted-foreground">Created</span>
                       <span className="font-medium">{formatDate(order.createdAt)}</span>
-                    </div>
+                    </>
                   )}
+                </div>
+                <div className="flex items-center justify-between gap-2 text-[11px]">
                   {order.dueDate && (
-                    <div className="flex justify-between gap-2">
-                      <span className="text-muted-foreground">Due Date</span>
+                    <>
+                      <span className="text-muted-foreground">Due</span>
                       <span
                         className={`font-medium ${
                           new Date(order.dueDate) < new Date() &&
@@ -335,39 +338,36 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
                       >
                         {formatDate(order.dueDate)}
                       </span>
-                    </div>
-                  )}
-                  {order.customerPo && (
-                    <div className="flex justify-between gap-2">
-                      <span className="text-muted-foreground">PO</span>
-                      <span className="font-medium truncate">{order.customerPo}</span>
-                    </div>
+                    </>
                   )}
                 </div>
+                {order.customerPo && (
+                  <div className="flex items-center justify-between gap-2 text-[11px]">
+                    <span className="text-muted-foreground">PO</span>
+                    <span className="font-medium truncate">{order.customerPo}</span>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Payment */}
-            <div className="flex items-start gap-2 md:pl-4">
-              <CreditCard className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" weight="bold" />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Payment</p>
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between gap-2">
-                    <span className="text-muted-foreground">Total</span>
-                    <span className="font-medium">{formatCurrency(order.totalAmount)}</span>
-                  </div>
-                  <div className="flex justify-between gap-2">
-                    <span className="text-muted-foreground">Paid</span>
-                    <span className="font-medium text-green-400">{formatCurrency(paid)}</span>
-                  </div>
-                  <Separator className="my-1" />
-                  <div className="flex justify-between gap-2">
-                    <span className="text-muted-foreground">Balance</span>
-                    <span className={`font-medium ${balance > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
-                      {formatCurrency(balance)}
-                    </span>
-                  </div>
+            <div className="flex items-start gap-2 md:pl-3">
+              <CreditCard className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" weight="bold" />
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <div className="flex items-center justify-between gap-2 text-[11px]">
+                  <span className="text-muted-foreground">Total</span>
+                  <span className="font-medium">{formatCurrency(order.totalAmount)}</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 text-[11px]">
+                  <span className="text-muted-foreground">Paid</span>
+                  <span className="font-medium text-green-400">{formatCurrency(paid)}</span>
+                </div>
+                <Separator className="my-0.5" />
+                <div className="flex items-center justify-between gap-2 text-[11px]">
+                  <span className="text-muted-foreground">Balance</span>
+                  <span className={`font-medium ${balance > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
+                    {formatCurrency(balance)}
+                  </span>
                 </div>
               </div>
             </div>
