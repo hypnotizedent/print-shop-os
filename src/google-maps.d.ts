@@ -21,6 +21,9 @@ declare global {
             };
           };
         };
+        event: {
+          clearInstanceListeners: (instance: any) => void;
+        };
       };
     };
   }

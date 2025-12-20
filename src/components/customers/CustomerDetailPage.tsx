@@ -68,65 +68,91 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
 
   // Google Places Autocomplete for billing address
   useEffect(() => {
-    if (window.google && isEditing) {
-      const input = document.getElementById('billing-address-autocomplete') as HTMLInputElement;
-      if (input) {
-        const autocomplete = new window.google.maps.places.Autocomplete(input, {
-          types: ['address'],
-          componentRestrictions: { country: 'us' }
-        });
-        
-        autocomplete.addListener('place_changed', () => {
-          const place = autocomplete.getPlace();
-          const components = place.address_components;
-          
-          const getComponent = (type: string) => 
-            components?.find(c => c.types.includes(type))?.long_name || '';
-          
-          setBillingAddress({
-            street: `${getComponent('street_number')} ${getComponent('route')}`.trim(),
-            city: getComponent('locality') || getComponent('sublocality'),
-            state: getComponent('administrative_area_level_1'),
-            zip: getComponent('postal_code'),
-            country: getComponent('country')
-          });
+    if (!window.google || !isEditing) return;
+    
+    const input = document.getElementById('billing-address-autocomplete') as HTMLInputElement;
+    if (!input) return;
+
+    const autocomplete = new window.google.maps.places.Autocomplete(input, {
+      types: ['address'],
+      componentRestrictions: { country: 'us' }
+    });
+    
+    const getComponent = (components: any[], type: string) => 
+      components?.find(c => c.types.includes(type))?.long_name || '';
+    
+    const listener = () => {
+      const place = autocomplete.getPlace();
+      const components = place.address_components;
+      
+      if (components) {
+        setBillingAddress({
+          street: `${getComponent(components, 'street_number')} ${getComponent(components, 'route')}`.trim(),
+          city: getComponent(components, 'locality') || getComponent(components, 'sublocality'),
+          state: getComponent(components, 'administrative_area_level_1'),
+          zip: getComponent(components, 'postal_code'),
+          country: getComponent(components, 'country')
         });
       }
-    }
+    };
+    
+    autocomplete.addListener('place_changed', listener);
+    
+    // Cleanup
+    return () => {
+      window.google.maps.event.clearInstanceListeners(autocomplete);
+    };
   }, [isEditing]);
 
   // Google Places Autocomplete for shipping address
   useEffect(() => {
-    if (window.google && isEditing && !shippingSameAsBilling) {
-      const input = document.getElementById('shipping-address-autocomplete') as HTMLInputElement;
-      if (input) {
-        const autocomplete = new window.google.maps.places.Autocomplete(input, {
-          types: ['address'],
-          componentRestrictions: { country: 'us' }
-        });
-        
-        autocomplete.addListener('place_changed', () => {
-          const place = autocomplete.getPlace();
-          const components = place.address_components;
-          
-          const getComponent = (type: string) => 
-            components?.find(c => c.types.includes(type))?.long_name || '';
-          
-          setShippingAddress({
-            street: `${getComponent('street_number')} ${getComponent('route')}`.trim(),
-            city: getComponent('locality') || getComponent('sublocality'),
-            state: getComponent('administrative_area_level_1'),
-            zip: getComponent('postal_code'),
-            country: getComponent('country')
-          });
+    if (!window.google || !isEditing || shippingSameAsBilling) return;
+    
+    const input = document.getElementById('shipping-address-autocomplete') as HTMLInputElement;
+    if (!input) return;
+
+    const autocomplete = new window.google.maps.places.Autocomplete(input, {
+      types: ['address'],
+      componentRestrictions: { country: 'us' }
+    });
+    
+    const getComponent = (components: any[], type: string) => 
+      components?.find(c => c.types.includes(type))?.long_name || '';
+    
+    const listener = () => {
+      const place = autocomplete.getPlace();
+      const components = place.address_components;
+      
+      if (components) {
+        setShippingAddress({
+          street: `${getComponent(components, 'street_number')} ${getComponent(components, 'route')}`.trim(),
+          city: getComponent(components, 'locality') || getComponent(components, 'sublocality'),
+          state: getComponent(components, 'administrative_area_level_1'),
+          zip: getComponent(components, 'postal_code'),
+          country: getComponent(components, 'country')
         });
       }
-    }
+    };
+    
+    autocomplete.addListener('place_changed', listener);
+    
+    // Cleanup
+    return () => {
+      window.google.maps.event.clearInstanceListeners(autocomplete);
+    };
   }, [isEditing, shippingSameAsBilling]);
 
   const handleSave = () => {
-    // TODO: Save to API
-    console.log('Saving addresses:', { billingAddress, shippingAddress: shippingSameAsBilling ? billingAddress : shippingAddress });
+    // TODO: Implement API call to save addresses
+    // For now, just update local state and exit edit mode
+    console.log('Saving addresses:', { 
+      billingAddress, 
+      shippingAddress: shippingSameAsBilling ? billingAddress : shippingAddress 
+    });
+    
+    // Show a warning that this is not persisted yet
+    alert('Note: Address changes are displayed but not yet persisted to the database. API integration needed.');
+    
     setIsEditing(false);
   };
 
