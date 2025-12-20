@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useOrderDetail, type OrderDetail, type OrderDetailLineItem } from '@/lib/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,64 @@ import {
 import { formatCurrency, formatDate, getAPIStatusColor, getAPIStatusLabel, getMethodLabel } from '@/lib/helpers';
 import { SizeBreakdown, ImprintMethod } from '@/lib/types';
 import { ImageModal } from '@/components/shared/ImageModal';
+
+// Component for rendering PDF thumbnail with fallback
+function PdfThumbnail({ 
+  thumbnailUrl, 
+  pdfUrl, 
+  name, 
+  size = 'large',
+  className = '' 
+}: { 
+  thumbnailUrl: string | null | undefined; 
+  pdfUrl: string; 
+  name: string; 
+  size?: 'small' | 'large';
+  className?: string;
+}) {
+  const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  
+  // Reset thumbnailFailed state when thumbnailUrl changes
+  useEffect(() => {
+    setThumbnailFailed(false);
+  }, [thumbnailUrl]);
+  
+  const iconSize = size === 'small' ? 24 : 32;
+  const containerClasses = size === 'small' 
+    ? 'flex-shrink-0 w-12 h-12 rounded border border-border hover:border-primary transition-colors'
+    : 'flex-shrink-0 w-20 h-20 rounded-lg border border-border hover:border-primary transition-colors';
+  
+  // Show PDF icon if no thumbnail or if thumbnail failed to load
+  if (!thumbnailUrl || thumbnailFailed) {
+    return (
+      <a
+        href={pdfUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`${containerClasses} flex items-center justify-center bg-muted/50 ${className}`}
+      >
+        <FilePdf size={iconSize} className="text-red-400" weight="fill" />
+      </a>
+    );
+  }
+  
+  // Show thumbnail image
+  return (
+    <a
+      href={pdfUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`${containerClasses} overflow-hidden bg-card ${className}`}
+    >
+      <img
+        src={thumbnailUrl}
+        alt={name}
+        className="w-full h-full object-cover"
+        onError={() => setThumbnailFailed(true)}
+      />
+    </a>
+  );
+}
 
 // Helper to check if URL is a PDF
 function isPdfUrl(url: string | undefined): boolean {
@@ -480,7 +538,7 @@ interface LineItemCardProps {
   item: OrderDetailLineItem;
   index: number;
   orderStatus: string;
-  imprintMockup: { id: string; url: string; name: string } | null;
+  imprintMockup: { id: string; url: string; name: string; thumbnail_url?: string | null } | null;
   onImageClick?: (images: Array<{ url: string; name: string; id: string }>, index: number) => void;
 }
 
@@ -500,14 +558,12 @@ function LineItemCard({ item, index, orderStatus, imprintMockup, onImageClick }:
         {/* Mockup Thumbnail */}
         {item.mockup ? (
           isPdfUrl(item.mockup.url) ? (
-            <a
-              href={item.mockup.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-shrink-0 w-20 h-20 rounded-lg bg-card border border-border hover:border-primary transition-colors flex items-center justify-center"
-            >
-              <FilePdf size={32} className="text-red-400" weight="fill" />
-            </a>
+            <PdfThumbnail
+              thumbnailUrl={item.mockup.thumbnail_url}
+              pdfUrl={item.mockup.url}
+              name={item.mockup.name}
+              size="large"
+            />
           ) : (
             <button
               onClick={() => onImageClick?.([item.mockup!], 0)}
@@ -609,14 +665,12 @@ function LineItemCard({ item, index, orderStatus, imprintMockup, onImageClick }:
             {/* Imprint Mockup Thumbnail */}
             {imprintMockup && (
               isPdfUrl(imprintMockup.url) ? (
-                <a
-                  href={imprintMockup.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex-shrink-0 w-12 h-12 rounded border border-border hover:border-primary transition-colors flex items-center justify-center bg-muted/50"
-                >
-                  <FilePdf size={24} className="text-red-400" weight="fill" />
-                </a>
+                <PdfThumbnail
+                  thumbnailUrl={imprintMockup.thumbnail_url}
+                  pdfUrl={imprintMockup.url}
+                  name="Imprint mockup"
+                  size="small"
+                />
               ) : (
                 <button
                   onClick={() => onImageClick?.([imprintMockup], 0)}
