@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useOrderDetail, type OrderDetail, type OrderDetailLineItem } from '@/lib/hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ import {
 } from '@phosphor-icons/react';
 import { formatCurrency, formatDate, getAPIStatusColor, getAPIStatusLabel, getMethodLabel } from '@/lib/helpers';
 import { SizeBreakdown, ImprintMethod } from '@/lib/types';
+import { ImageModal } from '@/components/shared/ImageModal';
 
 // Map API size keys to SizeBreakdown format
 function mapSizesToGrid(sizes: OrderDetailLineItem['sizes']): SizeBreakdown {
@@ -50,6 +52,15 @@ interface OrderDetailPageProps {
 
 export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPageProps) {
   const { order, loading, error, refetch } = useOrderDetail(visualId);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalImages, setModalImages] = useState<Array<{ url: string; name: string; id: string }>>([]);
+  const [modalIndex, setModalIndex] = useState(0);
+
+  const openImageModal = (images: Array<{ url: string; name: string; id: string }>, index: number = 0) => {
+    setModalImages(images);
+    setModalIndex(index);
+    setModalOpen(true);
+  };
 
   if (loading) {
     return (
@@ -185,6 +196,7 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
                       index={index}
                       orderStatus={order.status}
                       imprintMockup={imprintMockups[index] || null}
+                      onImageClick={openImageModal}
                     />
                   ));
                 })()
@@ -367,6 +379,15 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
           </Card>
         </div>
       </div>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={modalOpen}
+        onClose={() => setModalOpen(false)}
+        images={modalImages}
+        currentIndex={modalIndex}
+        onNavigate={setModalIndex}
+      />
     </div>
   );
 }
@@ -376,11 +397,12 @@ interface LineItemCardProps {
   index: number;
   orderStatus: string;
   imprintMockup: { id: string; url: string; name: string } | null;
+  onImageClick?: (images: Array<{ url: string; name: string; id: string }>, index: number) => void;
 }
 
 const SIZE_LABELS: (keyof SizeBreakdown)[] = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 
-function LineItemCard({ item, index, orderStatus, imprintMockup }: LineItemCardProps) {
+function LineItemCard({ item, index, orderStatus, imprintMockup, onImageClick }: LineItemCardProps) {
   const sizes = mapSizesToGrid(item.sizes);
   const total = item.totalQuantity;
   const hasOtherSizes = (item.sizes.xxxxl || 0) + (item.sizes.xxxxxl || 0) + (item.sizes.other || 0) > 0;
@@ -393,11 +415,9 @@ function LineItemCard({ item, index, orderStatus, imprintMockup }: LineItemCardP
       <div className="flex items-start gap-4">
         {/* Mockup Thumbnail */}
         {item.mockup ? (
-          <a
-            href={item.mockup.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-card border border-border hover:border-primary transition-colors"
+          <button
+            onClick={() => onImageClick?.([item.mockup!], 0)}
+            className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-card border border-border hover:border-primary transition-colors cursor-pointer"
           >
             <img
               src={item.mockup.url}
@@ -407,7 +427,7 @@ function LineItemCard({ item, index, orderStatus, imprintMockup }: LineItemCardP
                 (e.target as HTMLImageElement).style.display = 'none';
               }}
             />
-          </a>
+          </button>
         ) : (
           <div className="flex-shrink-0 w-20 h-20 rounded-lg bg-muted/50 border border-border flex items-center justify-center">
             <Image className="w-6 h-6 text-muted-foreground/50" weight="duotone" />
@@ -493,18 +513,19 @@ function LineItemCard({ item, index, orderStatus, imprintMockup }: LineItemCardP
           <div className="flex items-center gap-3">
             {/* Imprint Mockup Thumbnail */}
             {imprintMockup && (
-              <a
-                href={imprintMockup.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-shrink-0"
+              <button
+                onClick={() => onImageClick?.([imprintMockup], 0)}
+                className="flex-shrink-0 cursor-pointer"
               >
                 <img
                   src={imprintMockup.url}
                   alt="Imprint mockup"
                   className="w-12 h-12 object-cover rounded border border-border hover:opacity-80 transition-opacity"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
                 />
-              </a>
+              </button>
             )}
             <div className="flex items-center justify-between flex-1">
               <div className="flex items-center gap-2">
@@ -515,9 +536,14 @@ function LineItemCard({ item, index, orderStatus, imprintMockup }: LineItemCardP
                   {getMethodLabel(imprintMethod)}
                 </Badge>
               </div>
-              <span className="text-xs text-muted-foreground">
-                {imprintMockup ? 'View mockup' : 'Standard placement'}
-              </span>
+              {imprintMockup && (
+                <button
+                  onClick={() => onImageClick?.([imprintMockup], 0)}
+                  className="text-xs text-primary hover:underline"
+                >
+                  View mockup
+                </button>
+              )}
             </div>
           </div>
         </div>
