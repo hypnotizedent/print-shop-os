@@ -246,7 +246,7 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
   const paid = order.totalAmount - order.amountOutstanding;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -276,272 +276,251 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
         </div>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Line Items */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-base font-medium flex items-center gap-2">
-                <FileText className="w-4 h-4" weight="bold" />
-                Line Items ({order.lineItems.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {order.lineItems.length === 0 ? (
-                <p className="text-muted-foreground text-sm text-center py-4">
-                  No line items
-                </p>
-              ) : (
-                (() => {
-                  const imprintMockups = order.artworkFiles
-                    .filter(f => f.source === 'imprintMockup')
-                    .sort((a, b) => {
-                      const aIsPdf = a.url?.toLowerCase().endsWith('.pdf');
-                      const bIsPdf = b.url?.toLowerCase().endsWith('.pdf');
-                      if (aIsPdf && !bIsPdf) return 1;
-                      if (!aIsPdf && bIsPdf) return -1;
-                      return 0;
-                    });
-
-                  return order.lineItems.map((item, index) => (
-                    <LineItemCard
-                      key={item.id}
-                      item={item}
-                      index={index}
-                      orderStatus={order.status}
-                      imprintMockups={imprintMockups}
-                      onImageClick={openImageModal}
-                    />
-                  ));
-                })()
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Production Files - only show productionFile source, not line item mockups */}
-          {(() => {
-            const productionFiles = order.artworkFiles.filter(f => f.source === 'productionFile');
-            const imageFiles = productionFiles.filter(f => isImageFile(f.name));
-            const nonImageFiles = productionFiles.filter(f => !isImageFile(f.name));
-            
-            return productionFiles.length > 0 && (
-              <Card className="bg-card border-border">
-                <CardHeader>
-                  <CardTitle className="text-base font-medium flex items-center gap-2">
-                    <FileText className="w-4 h-4" weight="bold" />
-                    Production Files ({productionFiles.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {/* Image Files with Previews */}
-                  {imageFiles.length > 0 && (
-                    <div>
-                      <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                        Images ({imageFiles.length})
-                      </p>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                        {imageFiles.map((file, idx) => (
-                          <button
-                            key={file.id}
-                            onClick={() => openImageModal(imageFiles, idx)}
-                            className="relative group aspect-square rounded-lg overflow-hidden bg-muted border border-border hover:border-primary transition-colors cursor-pointer"
-                          >
-                            <img
-                              src={file.url}
-                              alt={file.name}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                              }}
-                            />
-                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <FileImage className="w-8 h-8 text-white" weight="bold" />
-                            </div>
-                            <div className="absolute bottom-0 left-0 right-0 p-1 bg-black/80 text-white text-xs truncate">
-                              {file.name}
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+      {/* Compact Info Bar - Customer, Dates, Payment */}
+      <Card className="bg-card/50 border-border">
+        <CardContent className="p-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:divide-x md:divide-border">
+            {/* Customer */}
+            <div className="flex items-start gap-2">
+              <User className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" weight="bold" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Customer</p>
+                <button
+                  onClick={() => onViewCustomer(String(order.customer.id))}
+                  className="text-sm font-medium text-primary hover:underline text-left truncate block w-full"
+                >
+                  {order.customer.name}
+                </button>
+                {order.customer.company && (
+                  <p className="text-xs text-muted-foreground truncate">{order.customer.company}</p>
+                )}
+                <div className="flex flex-col gap-0.5 mt-1">
+                  {order.customer.email && (
+                    <a href={`mailto:${order.customer.email}`} className="text-xs text-muted-foreground hover:text-foreground truncate">
+                      {order.customer.email}
+                    </a>
                   )}
-                  
-                  {/* Non-Image Files */}
-                  {nonImageFiles.length > 0 && (
-                    <div>
-                      {imageFiles.length > 0 && (
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                          Other Files ({nonImageFiles.length})
-                        </p>
-                      )}
-                      <div className="grid gap-2">
-                        {nonImageFiles.map((file) => (
-                          <a
-                            key={file.id}
-                            href={file.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-3 p-3 bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors"
-                          >
-                            {getFileIcon(file.name)}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium truncate">{file.name}</p>
-                              <p className="text-xs text-muted-foreground">{getFileExtension(file.name).toUpperCase()} file</p>
-                            </div>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
+                  {order.customer.phone && (
+                    <a href={`tel:${order.customer.phone}`} className="text-xs text-muted-foreground hover:text-foreground">
+                      {order.customer.phone}
+                    </a>
                   )}
-                </CardContent>
-              </Card>
-            );
-          })()}
-
-          {/* Production Notes */}
-          {order.productionNotes && (
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-base font-medium">Production Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div
-                  className="text-sm text-muted-foreground prose prose-sm prose-invert max-w-none"
-                  dangerouslySetInnerHTML={{ __html: order.productionNotes }}
-                />
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Order Notes */}
-          {order.notes && (
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-base font-medium">Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                  {order.notes}
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Sidebar */}
-        <div className="space-y-6">
-          {/* Customer */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-base font-medium flex items-center gap-2">
-                <User className="w-4 h-4" weight="bold" />
-                Customer
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <button
-                onClick={() => onViewCustomer(String(order.customer.id))}
-                className="text-primary hover:underline font-medium text-left"
-              >
-                {order.customer.name}
-              </button>
-              {order.customer.company && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Buildings className="w-4 h-4" />
-                  {order.customer.company}
-                </div>
-              )}
-              {order.customer.email && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Envelope className="w-4 h-4" />
-                  <a href={`mailto:${order.customer.email}`} className="hover:text-foreground">
-                    {order.customer.email}
-                  </a>
-                </div>
-              )}
-              {order.customer.phone && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Phone className="w-4 h-4" />
-                  <a href={`tel:${order.customer.phone}`} className="hover:text-foreground">
-                    {order.customer.phone}
-                  </a>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Dates */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-base font-medium flex items-center gap-2">
-                <Calendar className="w-4 h-4" weight="bold" />
-                Dates
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm">
-              {order.createdAt && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Created</span>
-                  <span>{formatDate(order.createdAt)}</span>
-                </div>
-              )}
-              {order.dueDate && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Due Date</span>
-                  <span
-                    className={
-                      new Date(order.dueDate) < new Date() &&
-                      order.status.toLowerCase() !== 'complete' &&
-                      order.status.toLowerCase() !== 'shipped'
-                        ? 'text-destructive'
-                        : ''
-                    }
-                  >
-                    {formatDate(order.dueDate)}
-                  </span>
-                </div>
-              )}
-              {order.customerPo && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Customer PO</span>
-                  <span>{order.customerPo}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Payment Summary */}
-          <Card className="bg-card border-border">
-            <CardHeader>
-              <CardTitle className="text-base font-medium flex items-center gap-2">
-                <CreditCard className="w-4 h-4" weight="bold" />
-                Payment
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="text-sm space-y-2">
-                <div className="flex justify-between font-medium">
-                  <span>Total</span>
-                  <span>{formatCurrency(order.totalAmount)}</span>
-                </div>
-                <div className="flex justify-between text-green-400">
-                  <span>Paid</span>
-                  <span>{formatCurrency(paid)}</span>
-                </div>
-                <Separator className="my-2" />
-                <div className="flex justify-between font-medium">
-                  <span>Balance Due</span>
-                  <span className={balance > 0 ? 'text-yellow-400' : 'text-green-400'}>
-                    {formatCurrency(balance)}
-                  </span>
                 </div>
               </div>
+            </div>
+
+            {/* Dates */}
+            <div className="flex items-start gap-2 md:pl-4">
+              <Calendar className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" weight="bold" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Dates</p>
+                <div className="space-y-1 text-xs">
+                  {order.createdAt && (
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">Created</span>
+                      <span className="font-medium">{formatDate(order.createdAt)}</span>
+                    </div>
+                  )}
+                  {order.dueDate && (
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">Due Date</span>
+                      <span
+                        className={`font-medium ${
+                          new Date(order.dueDate) < new Date() &&
+                          order.status.toLowerCase() !== 'complete' &&
+                          order.status.toLowerCase() !== 'shipped'
+                            ? 'text-destructive'
+                            : ''
+                        }`}
+                      >
+                        {formatDate(order.dueDate)}
+                      </span>
+                    </div>
+                  )}
+                  {order.customerPo && (
+                    <div className="flex justify-between gap-2">
+                      <span className="text-muted-foreground">PO</span>
+                      <span className="font-medium truncate">{order.customerPo}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Payment */}
+            <div className="flex items-start gap-2 md:pl-4">
+              <CreditCard className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" weight="bold" />
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Payment</p>
+                <div className="space-y-1 text-xs">
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Total</span>
+                    <span className="font-medium">{formatCurrency(order.totalAmount)}</span>
+                  </div>
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Paid</span>
+                    <span className="font-medium text-green-400">{formatCurrency(paid)}</span>
+                  </div>
+                  <Separator className="my-1" />
+                  <div className="flex justify-between gap-2">
+                    <span className="text-muted-foreground">Balance</span>
+                    <span className={`font-medium ${balance > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
+                      {formatCurrency(balance)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Main Content - Line Items */}
+      <Card className="bg-card border-border">
+        <CardHeader>
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <FileText className="w-4 h-4" weight="bold" />
+            Line Items ({order.lineItems.length})
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {order.lineItems.length === 0 ? (
+            <p className="text-muted-foreground text-sm text-center py-4">
+              No line items
+            </p>
+          ) : (
+            (() => {
+              const imprintMockups = order.artworkFiles
+                .filter(f => f.source === 'imprintMockup')
+                .sort((a, b) => {
+                  const aIsPdf = a.url?.toLowerCase().endsWith('.pdf');
+                  const bIsPdf = b.url?.toLowerCase().endsWith('.pdf');
+                  if (aIsPdf && !bIsPdf) return 1;
+                  if (!aIsPdf && bIsPdf) return -1;
+                  return 0;
+                });
+
+              return order.lineItems.map((item, index) => (
+                <LineItemCard
+                  key={item.id}
+                  item={item}
+                  index={index}
+                  orderStatus={order.status}
+                  imprintMockups={imprintMockups}
+                  onImageClick={openImageModal}
+                />
+              ));
+            })()
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Production Files - Collapsible */}
+      {(() => {
+        const productionFiles = order.artworkFiles.filter(f => f.source === 'productionFile');
+        const imageFiles = productionFiles.filter(f => isImageFile(f.name));
+        const nonImageFiles = productionFiles.filter(f => !isImageFile(f.name));
+        
+        return productionFiles.length > 0 && (
+          <Card className="bg-card border-border">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-medium flex items-center gap-2">
+                <FileText className="w-4 h-4" weight="bold" />
+                Production Files ({productionFiles.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {/* Image Files with Previews */}
+              {imageFiles.length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
+                    Images ({imageFiles.length})
+                  </p>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                    {imageFiles.map((file, idx) => (
+                      <button
+                        key={file.id}
+                        onClick={() => openImageModal(imageFiles, idx)}
+                        className="relative group aspect-square rounded-lg overflow-hidden bg-muted border border-border hover:border-primary transition-colors cursor-pointer"
+                      >
+                        <img
+                          src={file.url}
+                          alt={file.name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <FileImage className="w-6 h-6 text-white" weight="bold" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Non-Image Files */}
+              {nonImageFiles.length > 0 && (
+                <div>
+                  {imageFiles.length > 0 && (
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
+                      Other Files ({nonImageFiles.length})
+                    </p>
+                  )}
+                  <div className="grid gap-2">
+                    {nonImageFiles.map((file) => (
+                      <a
+                        key={file.id}
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-2 bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors"
+                      >
+                        {getFileIcon(file.name)}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">{getFileExtension(file.name).toUpperCase()} file</p>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
-        </div>
-      </div>
+        );
+      })()}
+
+      {/* Production Notes */}
+      {order.productionNotes && (
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium">Production Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div
+              className="text-sm text-muted-foreground prose prose-sm prose-invert max-w-none"
+              dangerouslySetInnerHTML={{ __html: order.productionNotes }}
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Order Notes */}
+      {order.notes && (
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-medium">Notes</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+              {order.notes}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Image Modal */}
       <ImageModal
