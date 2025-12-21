@@ -69,16 +69,16 @@ export function Dashboard({ orders, customers, onViewOrder }: DashboardProps) {
 
       <Card className="bg-card/50 border-border/50">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-2">
             <div>
               <h2 className="text-base font-semibold">All Active Jobs</h2>
               <p className="text-xs text-muted-foreground">
                 Jobs not marked as delivered, sorted by due date
               </p>
             </div>
-            <Button variant="ghost" size="sm" className="gap-2 text-sm h-8">
-              View Jobs Board
-              <ArrowRight className="w-4 h-4" />
+            <Button variant="secondary" size="sm" className="gap-1.5 text-xs h-7 px-3">
+              View All Orders
+              <ArrowRight className="w-3.5 h-3.5" />
             </Button>
           </div>
 
