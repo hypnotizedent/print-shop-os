@@ -91,6 +91,7 @@ export function LineItemRow({ item, onDuplicate, onDelete, onAddImprint }: LineI
         <div className="w-32 shrink-0">
           <Input
             value={item.product_sku}
+            onChange={() => {}}
             placeholder="SKU"
             className="h-8 text-sm"
           />
@@ -111,6 +112,7 @@ export function LineItemRow({ item, onDuplicate, onDelete, onAddImprint }: LineI
               <Input
                 key={size}
                 value={qty || ''}
+                onChange={() => {}}
                 placeholder="0"
                 className="h-8 w-12 text-center text-xs p-1"
                 type="number"
