@@ -60,7 +60,9 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
     );
   }, [orders, search]);
 
-  const totalPages = Math.ceil(total / PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const hasNextPage = offset + orders.length < total;
+  const hasPrevPage = page > 0;
 
   const handleStatusChange = (value: string) => {
     setStatusFilter(value);
@@ -68,11 +70,15 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
   };
 
   const handlePrevPage = () => {
-    setPage(p => Math.max(0, p - 1));
+    if (hasPrevPage) {
+      setPage(p => Math.max(0, p - 1));
+    }
   };
 
   const handleNextPage = () => {
-    setPage(p => Math.min(totalPages - 1, p + 1));
+    if (hasNextPage) {
+      setPage(p => p + 1);
+    }
   };
 
   if (loading && orders.length === 0) {
@@ -224,7 +230,7 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
               variant="outline"
               size="sm"
               onClick={handlePrevPage}
-              disabled={page === 0 || loading}
+              disabled={!hasPrevPage || loading}
               className="gap-1 h-8"
             >
               <CaretLeft size={16} weight="bold" />
@@ -237,7 +243,7 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
               variant="outline"
               size="sm"
               onClick={handleNextPage}
-              disabled={page >= totalPages - 1 || loading}
+              disabled={!hasNextPage || loading}
               className="gap-1 h-8"
             >
               Next
