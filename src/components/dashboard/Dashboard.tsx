@@ -100,8 +100,9 @@ export function Dashboard({ orders, customers, onViewOrder, onNavigateToOrders }
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="flex items-center gap-2 mb-0.5">
-                          <h3 className="font-semibold text-sm">
-                            J-{order.visual_id}{order.nickname ? ` · ${order.nickname}` : ''}
+                          <h3 className="text-sm">
+                            <span className="font-bold">J-{order.visual_id}</span>
+                            {order.nickname && <span className="font-bold"> · {order.nickname}</span>}
                           </h3>
                         </div>
                         <p className="text-xs text-muted-foreground">{order.customer_name}</p>
