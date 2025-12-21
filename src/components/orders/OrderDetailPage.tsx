@@ -587,36 +587,6 @@ function LineItemCard({ item, index, orderStatus, imprintMockups, onImageClick, 
         </div>
 
         <div className="flex items-start gap-4">
-          {/* Mockup Thumbnail */}
-          {allLineItemMockups.length > 0 && allLineItemMockups[0] ? (
-            isPdfUrl(allLineItemMockups[0].url) ? (
-              <PdfThumbnail
-                thumbnailUrl={allLineItemMockups[0].thumbnail_url}
-                pdfUrl={allLineItemMockups[0].url}
-                name={allLineItemMockups[0].name}
-                size="large"
-              />
-            ) : (
-              <button
-                onClick={() => onImageClick?.(allLineItemMockups, 0)}
-                className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-card border border-border hover:border-primary transition-colors cursor-pointer"
-              >
-                <img
-                  src={allLineItemMockups[0].url}
-                  alt={allLineItemMockups[0].name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-              </button>
-            )
-          ) : (
-            <div className="flex-shrink-0 w-20 h-20 rounded-lg bg-muted/50 border border-border flex items-center justify-center">
-              <Image className="w-6 h-6 text-muted-foreground/50" weight="duotone" />
-            </div>
-          )}
-
         <div className="flex-1 min-w-0 flex items-start justify-between pr-12">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
@@ -655,6 +625,36 @@ function LineItemCard({ item, index, orderStatus, imprintMockups, onImageClick, 
             </div>
           </div>
         </div>
+
+          {/* Mockup Thumbnail */}
+          {allLineItemMockups.length > 0 && allLineItemMockups[0] ? (
+            isPdfUrl(allLineItemMockups[0].url) ? (
+              <PdfThumbnail
+                thumbnailUrl={allLineItemMockups[0].thumbnail_url}
+                pdfUrl={allLineItemMockups[0].url}
+                name={allLineItemMockups[0].name}
+                size="large"
+              />
+            ) : (
+              <button
+                onClick={() => onImageClick?.(allLineItemMockups, 0)}
+                className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-card border border-border hover:border-primary transition-colors cursor-pointer"
+              >
+                <img
+                  src={allLineItemMockups[0].url}
+                  alt={allLineItemMockups[0].name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </button>
+            )
+          ) : (
+            <div className="flex-shrink-0 w-20 h-20 rounded-lg bg-muted/50 border border-border flex items-center justify-center">
+              <Image className="w-6 h-6 text-muted-foreground/50" weight="duotone" />
+            </div>
+          )}
       </div>
 
       {/* Size Grid */}
