@@ -66,7 +66,7 @@ function PdfThumbnail({
     ? 'w-16 h-16'
     : 'w-24 h-24';
   
-  const hasThumbnail = thumbnailUrl && !thumbnailFailed;
+  const hasThumbnail = thumbnailUrl && thumbnailUrl.trim() !== '' && !thumbnailFailed;
   
   // If we have a valid thumbnail URL, try to show the image
   if (hasThumbnail) {
@@ -103,18 +103,18 @@ function PdfThumbnail({
     );
   }
   
-  // Fallback to PDF icon
+  // Fallback to styled "View PDF" button with icon
   return (
     <a
       href={pdfUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`${dimensions} flex-shrink-0 rounded-lg border-2 border-border hover:border-primary transition-all hover:shadow-lg overflow-hidden relative bg-card group ${className}`}
+      className={`${dimensions} flex-shrink-0 rounded-lg border-2 border-border hover:border-primary transition-all hover:shadow-lg overflow-hidden relative bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 group ${className}`}
       title={`Open ${name} (PDF)`}
     >
-      <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/20 dark:to-red-900/20 group-hover:from-red-100 group-hover:to-red-200 dark:group-hover:from-red-900/30 dark:group-hover:to-red-800/30 transition-all">
+      <div className="w-full h-full flex flex-col items-center justify-center group-hover:from-red-100 group-hover:to-red-200 dark:group-hover:from-red-900/30 dark:group-hover:to-red-800/30 transition-all">
         <FilePdf size={iconSize} className="text-red-500 mb-1 group-hover:scale-110 transition-transform" weight="fill" />
-        <span className="text-[10px] text-red-600 dark:text-red-400 uppercase font-bold tracking-wide">PDF</span>
+        <span className="text-[10px] text-red-600 dark:text-red-400 uppercase font-bold tracking-wide">View PDF</span>
       </div>
     </a>
   );
@@ -415,7 +415,8 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
       {(() => {
         const productionFiles = order.artworkFiles.filter(f => f.source === 'productionFile');
         const imageFiles = productionFiles.filter(f => isImageFile(f.name));
-        const nonImageFiles = productionFiles.filter(f => !isImageFile(f.name));
+        const pdfFiles = productionFiles.filter(f => getFileExtension(f.name) === 'pdf');
+        const otherFiles = productionFiles.filter(f => !isImageFile(f.name) && getFileExtension(f.name) !== 'pdf');
         
         return productionFiles.length > 0 && (
           <Card className="bg-card border-border">
@@ -457,16 +458,38 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
                 </div>
               )}
               
-              {/* Non-Image Files */}
-              {nonImageFiles.length > 0 && (
+              {/* PDF Files with Thumbnails */}
+              {pdfFiles.length > 0 && (
                 <div>
-                  {imageFiles.length > 0 && (
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
-                      Other Files ({nonImageFiles.length})
-                    </p>
-                  )}
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
+                    PDFs ({pdfFiles.length})
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {pdfFiles.map((file) => (
+                      <div key={file.id} className="flex flex-col gap-1">
+                        <PdfThumbnail
+                          thumbnailUrl={file.thumbnail_url}
+                          pdfUrl={file.url}
+                          name={file.name}
+                          size="large"
+                        />
+                        <p className="text-[10px] text-muted-foreground text-center truncate max-w-[96px]">
+                          {file.name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Other Files */}
+              {otherFiles.length > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
+                    Other Files ({otherFiles.length})
+                  </p>
                   <div className="grid gap-1.5">
-                    {nonImageFiles.map((file) => (
+                    {otherFiles.map((file) => (
                       <a
                         key={file.id}
                         href={file.url}
