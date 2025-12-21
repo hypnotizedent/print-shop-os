@@ -5,6 +5,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   FileText,
   Image,
   Warning,
@@ -13,7 +18,8 @@ import {
   Printer,
   FilePdf,
   FileImage,
-  File
+  File,
+  DotsThree
 } from '@phosphor-icons/react';
 import { formatCurrency, formatDate, getAPIStatusColor, getAPIStatusLabel, getMethodLabel } from '@/lib/helpers';
 import { SizeBreakdown, ImprintMethod } from '@/lib/types';
@@ -259,24 +265,35 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
             <p className="text-muted-foreground mt-1">{order.orderNickname}</p>
           )}
         </div>
-        <div className="text-right">
-          <div className="text-2xl font-semibold">{formatCurrency(order.totalAmount)}</div>
-          <p className="text-sm text-muted-foreground">
-            Balance:{' '}
-            <span className={balance > 0 ? 'text-yellow-400' : 'text-green-400'}>
-              {formatCurrency(balance)}
-            </span>
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="text-right">
+            <div className="text-2xl font-semibold">{formatCurrency(order.totalAmount)}</div>
+            <p className="text-sm text-muted-foreground">
+              Balance:{' '}
+              <span className={balance > 0 ? 'text-yellow-400' : 'text-green-400'}>
+                {formatCurrency(balance)}
+              </span>
+            </p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9">
+                <DotsThree size={20} weight="bold" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      {/* Minimal Info Bar - Customer, Dates, Payment */}
+      {/* Minimal Info Bar - Customer and Dates */}
       <Card className="bg-card/50 border-border">
         <CardContent className="py-3 px-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             {/* Customer Info - Left */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => onViewCustomer(String(order.customer.id))}
                   className="font-semibold text-foreground hover:text-primary hover:underline text-left"
@@ -290,7 +307,7 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
                   </>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5 flex-wrap">
                 {order.customer.email && (
                   <a href={`mailto:${order.customer.email}`} className="hover:text-foreground">
                     {order.customer.email}
@@ -305,8 +322,8 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
               </div>
             </div>
 
-            {/* Dates - Center */}
-            <div className="flex items-center gap-2 text-sm">
+            {/* Dates - Right */}
+            <div className="flex items-center gap-2 text-sm flex-wrap">
               {order.createdAt && (
                 <>
                   <span className="text-muted-foreground">Created {formatDate(order.createdAt)}</span>
@@ -326,17 +343,6 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
                   Due {formatDate(order.dueDate)}
                 </span>
               )}
-            </div>
-
-            {/* Payment - Right */}
-            <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-              <span className="font-semibold">{formatCurrency(paid)}</span>
-              <span className="text-muted-foreground">paid</span>
-              <span className="text-muted-foreground">·</span>
-              <span className={`font-semibold ${balance > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
-                {formatCurrency(balance)}
-              </span>
-              <span className="text-muted-foreground">due</span>
             </div>
           </div>
         </CardContent>
