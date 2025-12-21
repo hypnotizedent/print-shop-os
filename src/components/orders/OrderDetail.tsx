@@ -195,43 +195,53 @@ export function OrderDetail({ order, transactions, onViewCustomer }: OrderDetail
 }
 
 function LineItemCard({ item, index }: { item: LineItem; index: number }) {
+  const mockups: string[] = [];
+  
   return (
-    <div className="p-4 bg-secondary/30 rounded-lg space-y-4">
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs bg-muted px-2 py-0.5 rounded">#{index + 1}</span>
-            <h4 className="font-medium">{item.product_name}</h4>
-          </div>
-          <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-            <span>{item.product_sku}</span>
-            <span>•</span>
-            <span>{item.product_color}</span>
-          </div>
+    <div className="p-4 bg-secondary/30 rounded-lg flex gap-4">
+      <div className="flex-1 space-y-3">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span className="text-xs bg-muted px-2 py-0.5 rounded font-medium">#{index + 1}</span>
+          <span>{item.product_sku}</span>
+          <span>•</span>
+          <span>{item.product_color}</span>
         </div>
-        <div className="text-right">
-          <div className="font-medium">{formatCurrency(item.subtotal)}</div>
+        
+        <h4 className="font-medium text-base">{item.product_name}</h4>
+        
+        <div className="flex items-baseline gap-3">
+          <div className="font-semibold text-lg">{formatCurrency(item.subtotal)}</div>
           <div className="text-sm text-muted-foreground">
             {item.quantity} × {formatCurrency(item.unit_price)}
           </div>
         </div>
+        
+        <SizeGrid sizes={item.sizes} />
+        
+        {item.imprints.length > 0 && (
+          <div className="space-y-1.5">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+              <Printer className="w-3 h-3" weight="bold" />
+              Imprints
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              {item.imprints.map(imprint => (
+                <ImprintCard key={imprint.id} imprint={imprint} />
+              ))}
+            </div>
+          </div>
+        )}
       </div>
       
-      <SizeGrid sizes={item.sizes} />
-      
-      {item.imprints.length > 0 && (
-        <div className="space-y-1.5">
-          <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-            <Printer className="w-3 h-3" weight="bold" />
-            Imprints
-          </p>
-          <div className="flex items-center gap-2 flex-wrap">
-            {item.imprints.map(imprint => (
-              <ImprintCard key={imprint.id} imprint={imprint} />
-            ))}
-          </div>
+      <div className="flex-shrink-0 flex items-center">
+        <div className="w-24 h-24 bg-muted rounded-lg border border-border flex items-center justify-center">
+          {mockups.length > 0 ? (
+            <img src={mockups[0]} alt="Product mockup" className="w-full h-full object-cover rounded-lg" />
+          ) : (
+            <Image className="w-8 h-8 text-muted-foreground" weight="bold" />
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
