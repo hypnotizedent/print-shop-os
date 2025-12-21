@@ -165,7 +165,7 @@ export function CustomersListPage({ onViewCustomer }: CustomersListPageProps) {
                 onClick={() => onViewCustomer(String(customer.id))}
                 className="bg-card/50 hover:bg-card/80 border-border/50 cursor-pointer transition-all hover:border-border overflow-hidden group"
               >
-                <CardContent className="px-2.5 py-1.5">
+                <CardContent className="px-2.5 py-1">
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5 flex-1 min-w-0">
                       <div className="flex-1 min-w-0">
