@@ -4,8 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Briefcase,
-  CalendarBlank,
-  ArrowRight
+  CalendarBlank
 } from '@phosphor-icons/react';
 import { formatCurrency } from '@/lib/helpers';
 
@@ -70,10 +69,9 @@ export function Dashboard({ orders, customers, onViewOrder }: DashboardProps) {
       <Card className="bg-card/50 border-border/50">
         <CardContent className="px-4 pt-1.5 pb-2">
           <div className="flex items-center justify-between mb-2">
-            <Button variant="secondary" size="sm" className="gap-1.5 text-xs h-7 px-3">
-              View All Orders
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
+            <button className="bg-secondary/50 hover:bg-secondary text-secondary-foreground text-xs font-medium px-4 py-1 rounded-full transition-colors">
+              All Orders
+            </button>
           </div>
 
           {activeJobs.length === 0 ? (
