@@ -220,12 +220,12 @@ function LineItemCard({ item, index }: { item: LineItem; index: number }) {
       <SizeGrid sizes={item.sizes} />
       
       {item.imprints.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
             <Printer className="w-3 h-3" weight="bold" />
-            Imprints ({item.imprints.length})
+            Imprints
           </p>
-          <div className="grid gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             {item.imprints.map(imprint => (
               <ImprintCard key={imprint.id} imprint={imprint} />
             ))}
@@ -240,44 +240,24 @@ function ImprintCard({ imprint }: { imprint: Imprint }) {
   const mockups: string[] = [];
   
   return (
-    <div className="p-2 bg-card rounded border border-border">
+    <div 
+      className="group relative w-10 h-10 bg-muted rounded border border-border flex-shrink-0 flex items-center justify-center hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer"
+      title={imprint.artwork ? `${imprint.artwork.filename} • ${imprint.colors} color${imprint.colors !== 1 ? 's' : ''} • ${imprint.width}" × ${imprint.height}"` : `${imprint.colors} color${imprint.colors !== 1 ? 's' : ''} • ${imprint.width}" × ${imprint.height}"`}
+    >
       {mockups.length > 0 ? (
-        <div className="flex gap-2 mb-2">
-          {mockups.map((mockup, idx) => (
-            <div key={idx} className="w-16 h-16 bg-muted rounded border border-border flex-shrink-0">
-              <img src={mockup} alt="Mockup" className="w-full h-full object-cover rounded" />
-            </div>
-          ))}
-        </div>
+        <img src={mockups[0]} alt="Mockup" className="w-full h-full object-cover rounded" />
       ) : (
-        <p className="text-xs text-muted-foreground py-1">No imprint mockups</p>
+        <Image className="w-4 h-4 text-muted-foreground" weight="bold" />
       )}
-      
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          {imprint.artwork && (
-            <div className="flex items-center gap-1.5 text-xs mb-1">
-              <Image className="w-3 h-3 text-muted-foreground flex-shrink-0" weight="bold" />
-              <span className="text-muted-foreground truncate">
-                {imprint.artwork.filename}
-              </span>
-              {imprint.artwork.approved ? (
-                <CheckCircle className="w-3 h-3 text-green-400 flex-shrink-0" weight="fill" />
-              ) : (
-                <XCircle className="w-3 h-3 text-yellow-400 flex-shrink-0" weight="fill" />
-              )}
-            </div>
+      {imprint.artwork && (
+        <div className="absolute -top-1 -right-1">
+          {imprint.artwork.approved ? (
+            <CheckCircle className="w-3 h-3 text-green-400 bg-background rounded-full" weight="fill" />
+          ) : (
+            <XCircle className="w-3 h-3 text-yellow-400 bg-background rounded-full" weight="fill" />
           )}
-          <p className="text-xs text-muted-foreground">
-            {imprint.colors} color{imprint.colors !== 1 ? 's' : ''} • {imprint.width}" × {imprint.height}"
-          </p>
         </div>
-        {imprint.setup_fee > 0 && (
-          <span className="text-xs text-muted-foreground whitespace-nowrap">
-            +{formatCurrency(imprint.setup_fee)}
-          </span>
-        )}
-      </div>
+      )}
     </div>
   );
 }
