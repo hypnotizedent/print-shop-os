@@ -344,17 +344,6 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
                 </span>
               )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Main Content - Line Items */}
-      <Card className="bg-card border-border">
-        <CardHeader>
-          <CardTitle className="text-base font-medium flex items-center gap-2">
-            <FileText className="w-4 h-4" weight="bold" />
-            Line Items ({order.lineItems.length})
-          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {order.lineItems.length === 0 ? (
