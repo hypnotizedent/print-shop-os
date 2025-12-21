@@ -9,19 +9,17 @@ import {
 } from '@/components/ui/popover';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { useCustomersList } from '@/lib/hooks';
-
-interface Customer {
-  id: number;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  company: string | null;
-}
+import { useCustomersList, type CustomerListItem } from '@/lib/hooks';
 
 interface CustomerSelectorProps {
-  customer: Customer;
-  onCustomerChange?: (customer: Customer) => void;
+  customer: {
+    id: number;
+    name: string;
+    email: string | null;
+    phone: string | null;
+    company: string | null;
+  };
+  onCustomerChange?: (customer: CustomerListItem) => void;
   onViewCustomer?: (customerId: string) => void;
 }
 
@@ -46,7 +44,7 @@ export function CustomerSelector({
       .slice(0, 2);
   };
 
-  const handleSelectCustomer = (selectedCustomer: Customer) => {
+  const handleSelectCustomer = (selectedCustomer: CustomerListItem) => {
     onCustomerChange?.(selectedCustomer);
     setOpen(false);
     setSearch('');
@@ -146,8 +144,8 @@ export function CustomerSelector({
                       variant="outline" 
                       size="sm"
                       onClick={() => {
-                        // TODO: Implement create customer
-                        console.log('Create new customer:', search);
+                        // TODO: Implement create customer functionality
+                        setOpen(false);
                       }}
                     >
                       Create "{search}"
@@ -159,13 +157,7 @@ export function CustomerSelector({
                   {customers.map((c) => (
                     <button
                       key={c.id}
-                      onClick={() => handleSelectCustomer({
-                        id: c.id,
-                        name: c.name,
-                        email: c.email,
-                        phone: c.phone,
-                        company: c.company,
-                      })}
+                      onClick={() => handleSelectCustomer(c)}
                       className="w-full px-3 py-2 hover:bg-secondary/50 transition-colors text-left"
                     >
                       <div className="flex items-center gap-3">

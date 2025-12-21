@@ -118,7 +118,6 @@ export interface Order {
   visual_id: string;
   customer_id: string;
   customer_name: string;
-  customer?: Customer;
   status: OrderStatus;
   line_items: LineItem[];
   lineItemGroups?: LineItemGroup[];

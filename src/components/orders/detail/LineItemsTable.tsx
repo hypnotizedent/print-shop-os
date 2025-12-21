@@ -217,7 +217,9 @@ export function LineItemRow({ item, onDuplicate, onDelete, onAddImprint }: LineI
                       variant="ghost" 
                       size="icon" 
                       className="h-7 w-7 shrink-0"
-                      onClick={() => console.log('Delete imprint', imprint.id)}
+                      onClick={() => {
+                        // TODO: Implement delete imprint
+                      }}
                     >
                       <Trash className="w-3 h-3" weight="bold" />
                     </Button>
@@ -321,9 +323,15 @@ export function LineItemsTable({ items, onAddLineItem, onAddImprint }: LineItems
             <LineItemRow
               key={item.id}
               item={item}
-              onDuplicate={() => console.log('Duplicate', item.id)}
-              onDelete={() => console.log('Delete', item.id)}
-              onAddImprint={() => console.log('Add imprint to', item.id)}
+              onDuplicate={() => {
+                // TODO: Implement duplicate line item
+              }}
+              onDelete={() => {
+                // TODO: Implement delete line item
+              }}
+              onAddImprint={() => {
+                // TODO: Implement add imprint to line item
+              }}
             />
           ))
         )}
