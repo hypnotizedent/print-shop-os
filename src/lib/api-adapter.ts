@@ -137,7 +137,7 @@ interface APIOrder {
   id: number
   visual_id: string
   printavo_id: number | null
-  nickname: string | null
+  order_nickname: string | null
   status: string
   printavo_status_name: string
   customer_name: string
@@ -311,7 +311,7 @@ function transformOrder(apiOrder: APIOrder): Order {
     id: String(apiOrder.id),
     visual_id: apiOrder.visual_id || String(apiOrder.id),
     printavo_id: apiOrder.printavo_id,
-    nickname: apiOrder.nickname || null,
+    nickname: apiOrder.order_nickname || '',
     status,
     customer_id: String(apiOrder.customer_id || 0),
     customer,
