@@ -1,13 +1,9 @@
 import { Order, Customer } from '@/lib/types';
-import { useProductionStats } from '@/lib/hooks';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   Briefcase,
-  FileText,
-  Users as UsersIcon,
-  Printer,
   CalendarBlank,
   ArrowRight
 } from '@phosphor-icons/react';
@@ -20,8 +16,6 @@ interface DashboardProps {
 }
 
 export function Dashboard({ orders, customers, onViewOrder }: DashboardProps) {
-  const { stats: productionStats, loading } = useProductionStats();
-
   const activeJobs = orders.filter(o => 
     o.status !== 'COMPLETE' && o.status !== 'QUOTE'
   );
@@ -53,65 +47,22 @@ export function Dashboard({ orders, customers, onViewOrder }: DashboardProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <Card className="bg-card/50 border-border/50 hover:border-border transition-colors">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Active Jobs</h3>
-              <Briefcase className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-3xl font-bold leading-none">{activeJobs.length}</p>
-              <p className="text-xs text-muted-foreground">Not marked as complete</p>
-              <p className="text-sm font-medium text-primary">
-                {formatCurrency(totalInProduction)} in production
-              </p>
-            </div>
+          <CardContent className="p-2">
           </CardContent>
         </Card>
 
         <Card className="bg-card/50 border-border/50 hover:border-border transition-colors">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Follow-Up Needed</h3>
-              <FileText className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-3xl font-bold leading-none">{followUpNeeded.length}</p>
-              <p className="text-xs text-muted-foreground">Created this month · Not approved</p>
-              <p className="text-sm font-medium text-primary">
-                {formatCurrency(followUpNeeded.reduce((sum, o) => sum + o.total, 0))} potential value
-              </p>
-            </div>
+          <CardContent className="p-2">
           </CardContent>
         </Card>
 
         <Card className="bg-card/50 border-border/50 hover:border-border transition-colors">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Production Status</h3>
-              <Printer className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-3xl font-bold leading-none">{productionOrders.length}</p>
-              <p className="text-xs text-muted-foreground">
-                {productionStats?.art || 0} pending approval
-              </p>
-              <p className="text-sm font-medium text-primary">
-                {productionStats?.fulfillment || 0} ready for pickup
-              </p>
-            </div>
+          <CardContent className="p-2">
           </CardContent>
         </Card>
 
         <Card className="bg-card/50 border-border/50 hover:border-border transition-colors">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Total Customers</h3>
-              <UsersIcon className="w-4 h-4 text-muted-foreground" />
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-3xl font-bold leading-none">{customers.length}</p>
-              <p className="text-xs text-muted-foreground">0 jobs completed</p>
-            </div>
+          <CardContent className="p-2">
           </CardContent>
         </Card>
       </div>
@@ -131,24 +82,7 @@ export function Dashboard({ orders, customers, onViewOrder }: DashboardProps) {
             </Button>
           </div>
 
-          {loading ? (
-            <div className="space-y-2">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-card/80 rounded-lg p-3 border border-border/50 animate-pulse">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-2 flex-1">
-                      <div className="h-4 bg-muted rounded w-32" />
-                      <div className="h-3 bg-muted rounded w-48" />
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="h-6 bg-muted rounded w-20" />
-                      <div className="h-4 bg-muted rounded w-16" />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : activeJobs.length === 0 ? (
+          {activeJobs.length === 0 ? (
             <div className="text-center py-8">
               <Briefcase className="w-10 h-10 text-muted-foreground/30 mx-auto mb-2" />
               <p className="text-sm text-muted-foreground">No active jobs</p>
