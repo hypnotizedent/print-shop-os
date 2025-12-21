@@ -5,16 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import {
-  User,
-  Calendar,
   FileText,
-  CreditCard,
   Image,
   Warning,
   ArrowClockwise,
-  Phone,
-  Envelope,
-  Buildings,
   Package,
   Printer,
   FilePdf,
@@ -276,100 +270,73 @@ export function OrderDetailPage({ visualId, onViewCustomer }: OrderDetailPagePro
         </div>
       </div>
 
-      {/* Compact Info Bar - Customer, Dates, Payment */}
+      {/* Minimal Info Bar - Customer, Dates, Payment */}
       <Card className="bg-card/50 border-border">
-        <CardContent className="py-2 px-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:divide-x md:divide-border">
-            {/* Customer */}
-            <div className="flex items-start gap-2">
-              <User className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" weight="bold" />
-              <div className="min-w-0 flex-1 space-y-0.5">
+        <CardContent className="py-3 px-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            {/* Customer Info - Left */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => onViewCustomer(String(order.customer.id))}
-                  className="text-sm font-medium text-primary hover:underline text-left truncate block w-full leading-tight"
+                  className="font-semibold text-foreground hover:text-primary hover:underline text-left"
                 >
                   {order.customer.name}
-                  {order.customer.company && (
-                    <span className="text-muted-foreground font-normal"> · {order.customer.company}</span>
-                  )}
                 </button>
-                <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                  {order.customer.email && (
-                    <>
-                      <a href={`mailto:${order.customer.email}`} className="hover:text-foreground truncate">
-                        {order.customer.email}
-                      </a>
-                      {order.customer.phone && <span>•</span>}
-                    </>
-                  )}
-                  {order.customer.phone && (
-                    <a href={`tel:${order.customer.phone}`} className="hover:text-foreground whitespace-nowrap">
-                      {order.customer.phone}
-                    </a>
-                  )}
-                </div>
+                {order.customer.company && (
+                  <>
+                    <span className="text-muted-foreground">·</span>
+                    <span className="text-muted-foreground">{order.customer.company}</span>
+                  </>
+                )}
               </div>
-            </div>
-
-            {/* Dates */}
-            <div className="flex items-start gap-2 md:pl-3">
-              <Calendar className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" weight="bold" />
-              <div className="min-w-0 flex-1 space-y-0.5">
-                <div className="flex items-center justify-between gap-2 text-[11px]">
-                  {order.createdAt && (
-                    <>
-                      <span className="text-muted-foreground">Created</span>
-                      <span className="font-medium">{formatDate(order.createdAt)}</span>
-                    </>
-                  )}
-                </div>
-                <div className="flex items-center justify-between gap-2 text-[11px]">
-                  {order.dueDate && (
-                    <>
-                      <span className="text-muted-foreground">Due</span>
-                      <span
-                        className={`font-medium ${
-                          new Date(order.dueDate) < new Date() &&
-                          order.status.toLowerCase() !== 'complete' &&
-                          order.status.toLowerCase() !== 'shipped'
-                            ? 'text-destructive'
-                            : ''
-                        }`}
-                      >
-                        {formatDate(order.dueDate)}
-                      </span>
-                    </>
-                  )}
-                </div>
-                {order.customerPo && (
-                  <div className="flex items-center justify-between gap-2 text-[11px]">
-                    <span className="text-muted-foreground">PO</span>
-                    <span className="font-medium truncate">{order.customerPo}</span>
-                  </div>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mt-0.5">
+                {order.customer.email && (
+                  <a href={`mailto:${order.customer.email}`} className="hover:text-foreground">
+                    {order.customer.email}
+                  </a>
+                )}
+                {order.customer.email && order.customer.phone && <span>·</span>}
+                {order.customer.phone && (
+                  <a href={`tel:${order.customer.phone}`} className="hover:text-foreground">
+                    {order.customer.phone}
+                  </a>
                 )}
               </div>
             </div>
 
-            {/* Payment */}
-            <div className="flex items-start gap-2 md:pl-3">
-              <CreditCard className="w-3.5 h-3.5 text-primary mt-0.5 flex-shrink-0" weight="bold" />
-              <div className="min-w-0 flex-1 space-y-0.5">
-                <div className="flex items-center justify-between gap-2 text-[11px]">
-                  <span className="text-muted-foreground">Total</span>
-                  <span className="font-medium">{formatCurrency(order.totalAmount)}</span>
-                </div>
-                <div className="flex items-center justify-between gap-2 text-[11px]">
-                  <span className="text-muted-foreground">Paid</span>
-                  <span className="font-medium text-green-400">{formatCurrency(paid)}</span>
-                </div>
-                <Separator className="my-0.5" />
-                <div className="flex items-center justify-between gap-2 text-[11px]">
-                  <span className="text-muted-foreground">Balance</span>
-                  <span className={`font-medium ${balance > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
-                    {formatCurrency(balance)}
-                  </span>
-                </div>
-              </div>
+            {/* Dates - Center */}
+            <div className="flex items-center gap-2 text-sm">
+              {order.createdAt && (
+                <>
+                  <span className="text-muted-foreground">Created {formatDate(order.createdAt)}</span>
+                  <span className="text-muted-foreground">·</span>
+                </>
+              )}
+              {order.dueDate && (
+                <span
+                  className={`text-muted-foreground ${
+                    new Date(order.dueDate) < new Date() &&
+                    order.status.toLowerCase() !== 'complete' &&
+                    order.status.toLowerCase() !== 'shipped'
+                      ? 'text-destructive font-medium'
+                      : ''
+                  }`}
+                >
+                  Due {formatDate(order.dueDate)}
+                </span>
+              )}
+            </div>
+
+            {/* Payment - Right */}
+            <div className="flex items-center gap-2 text-sm whitespace-nowrap">
+              <span className="font-semibold">{formatCurrency(paid)}</span>
+              <span className="text-muted-foreground">paid</span>
+              <span className="text-muted-foreground">·</span>
+              <span className={`font-semibold ${balance > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
+                {formatCurrency(balance)}
+              </span>
+              <span className="text-muted-foreground">due</span>
             </div>
           </div>
         </CardContent>
