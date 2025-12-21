@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   User, Calendar, FileText, Printer, CreditCard, 
-  Image, CheckCircle, XCircle, Pencil 
+  Image, CheckCircle, XCircle, Pencil, Upload, X, FilePdf, FileImage 
 } from '@phosphor-icons/react';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { 
@@ -17,6 +17,7 @@ import {
   getPaymentMethodLabel 
 } from '@/lib/helpers';
 import { SizeGrid } from '@/components/shared/SizeGrid';
+import { toast } from 'sonner';
 
 interface OrderDetailProps {
   order: Order;
@@ -267,10 +268,18 @@ function ImprintCard({ imprint, onUpdate }: { imprint: Imprint; onUpdate: (impri
   const mockups: string[] = [];
   const [isEditing, setIsEditing] = useState(false);
   const [editedImprint, setEditedImprint] = useState<Imprint>(imprint);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
   
   const handleSave = () => {
+    if (uploadedFiles.length > 0) {
+      toast.success(`Changes saved with ${uploadedFiles.length} new file${uploadedFiles.length > 1 ? 's' : ''}`);
+    } else {
+      toast.success('Changes saved');
+    }
     onUpdate(editedImprint);
     setIsEditing(false);
+    setUploadedFiles([]);
   };
   
   const locationOptions: ImprintLocation[] = ['Front', 'Back', 'Left Chest', 'Right Sleeve', 'Left Sleeve', 'Neck'];
@@ -278,6 +287,54 @@ function ImprintCard({ imprint, onUpdate }: { imprint: Imprint; onUpdate: (impri
   
   const formatMethodLabel = (method: ImprintMethod) => {
     return method.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+  };
+  
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newFiles = Array.from(files);
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+      toast.success(`${newFiles.length} file${newFiles.length > 1 ? 's' : ''} added`);
+    }
+  };
+  
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const files = e.dataTransfer.files;
+    if (files) {
+      const newFiles = Array.from(files);
+      setUploadedFiles(prev => [...prev, ...newFiles]);
+      toast.success(`${newFiles.length} file${newFiles.length > 1 ? 's' : ''} added`);
+    }
+  };
+  
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+  
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+  
+  const getFileIcon = (file: File) => {
+    if (file.type.startsWith('image/')) {
+      return <FileImage className="w-6 h-6" weight="bold" />;
+    } else if (file.type === 'application/pdf') {
+      return <FilePdf className="w-6 h-6 text-red-400" weight="bold" />;
+    }
+    return <FileText className="w-6 h-6" weight="bold" />;
+  };
+  
+  const formatFileSize = (bytes: number) => {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
   
   return (
@@ -307,7 +364,7 @@ function ImprintCard({ imprint, onUpdate }: { imprint: Imprint; onUpdate: (impri
       </div>
 
       <Dialog open={isEditing} onOpenChange={setIsEditing}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Imprint</DialogTitle>
           </DialogHeader>
@@ -390,6 +447,107 @@ function ImprintCard({ imprint, onUpdate }: { imprint: Imprint; onUpdate: (impri
                 value={editedImprint.setup_fee}
                 onChange={(e) => setEditedImprint({...editedImprint, setup_fee: parseFloat(e.target.value) || 0})}
               />
+            </div>
+            
+            <div className="space-y-3 pt-2 border-t border-border">
+              <Label>Artwork Files</Label>
+              
+              <div
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                className={`border-2 border-dashed rounded-lg p-6 transition-colors ${
+                  isDragging 
+                    ? 'border-primary bg-primary/5' 
+                    : 'border-border hover:border-primary/50'
+                }`}
+              >
+                <div className="flex flex-col items-center justify-center gap-3">
+                  <Upload className="w-8 h-8 text-muted-foreground" weight="bold" />
+                  <div className="text-center">
+                    <p className="text-sm font-medium">
+                      Drop artwork files here or{' '}
+                      <label className="text-primary hover:underline cursor-pointer">
+                        browse
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*,.pdf,.ai,.eps,.svg"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
+                      </label>
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      PNG, JPG, PDF, AI, EPS, or SVG files
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              {uploadedFiles.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Uploaded Files ({uploadedFiles.length})</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {uploadedFiles.map((file, index) => (
+                      <div 
+                        key={index}
+                        className="flex items-center gap-3 p-2 bg-secondary/30 rounded-lg group"
+                      >
+                        <div className="flex-shrink-0 text-muted-foreground">
+                          {getFileIcon(file)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatFileSize(file.size)}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(index)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                        >
+                          <X className="w-4 h-4" weight="bold" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {imprint.artwork && (
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Current Artwork</p>
+                  <div className="flex items-center gap-3 p-2 bg-secondary/30 rounded-lg">
+                    <div className="flex-shrink-0">
+                      {imprint.artwork.approved ? (
+                        <CheckCircle className="w-5 h-5 text-green-400" weight="fill" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-yellow-400" weight="fill" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{imprint.artwork.filename}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {imprint.artwork.approved ? 'Approved' : 'Pending approval'} • {formatFileSize(imprint.artwork.file_size)}
+                      </p>
+                      {imprint.artwork.notes && (
+                        <p className="text-xs text-muted-foreground italic mt-1">{imprint.artwork.notes}</p>
+                      )}
+                    </div>
+                    <a
+                      href={imprint.artwork.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline text-xs"
+                    >
+                      View
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
