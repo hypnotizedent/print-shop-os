@@ -305,6 +305,11 @@ export function useOrderDetail(visualId: string | null) {
       }
       const data = await response.json()
 
+      // Debug: Log raw API response
+      console.log('🔍 Raw API Response for order:', visualId, data)
+      console.log('🔍 Line Items from API:', data.lineItems || data.line_items)
+      console.log('🔍 Customer from API:', data.customer)
+
       // Map API response to our type
       const orderDetail: OrderDetail = {
         id: data.id,
@@ -384,6 +389,12 @@ export function useOrderDetail(visualId: string | null) {
           })),
         })),
       }
+
+      // Debug: Log mapped order detail
+      console.log('✅ Mapped OrderDetail:', orderDetail)
+      console.log('✅ Line Items count:', orderDetail.lineItems.length)
+      console.log('✅ Line Items with imprints:', orderDetail.lineItems.filter(li => li.imprints.length > 0).length)
+      console.log('✅ Line Items with mockups:', orderDetail.lineItems.filter(li => li.mockup !== null).length)
 
       setOrder(orderDetail)
     } catch (err) {
