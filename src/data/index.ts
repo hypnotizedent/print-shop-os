@@ -172,9 +172,12 @@ const createOrder = (
             width: 12,
             height: 14,
             description: 'Full front logo',
-            artwork: null
+            artwork: null,
+            mockups: []
           }
-        ]
+        ],
+        mockups: [],
+        production_files: []
       }
     ],
     payments: [],

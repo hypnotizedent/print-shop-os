@@ -43,6 +43,16 @@ export interface Status {
   order: number
 }
 
+export interface Mockup {
+  url: string
+  thumbnailUrl: string
+}
+
+export interface ProductionFile {
+  url: string
+  filename: string
+}
+
 export interface Artwork {
   id: string
   imprint_id: string
@@ -63,6 +73,7 @@ export interface Imprint {
   height: number
   description: string
   artwork: Artwork | null
+  mockups: Mockup[]
 }
 
 export interface Size {
@@ -83,6 +94,8 @@ export interface LineItem {
   unit_price: number
   subtotal: number
   imprints: Imprint[]
+  mockups: Mockup[]
+  production_files: ProductionFile[]
 }
 
 export interface Payment {
@@ -167,6 +180,28 @@ interface APIOrder {
   line_items: APILineItem[]
 }
 
+interface APIMockup {
+  url: string
+  thumbnailUrl?: string
+  thumbnail_url?: string
+}
+
+interface APIProductionFile {
+  url: string
+  filename: string
+}
+
+interface APIImprint {
+  id: number
+  location: string
+  description: string | null
+  type?: string
+  colors?: number
+  width?: number
+  height?: number
+  mockups?: APIMockup[]
+}
+
 interface APILineItem {
   id: number
   style_description: string | null
@@ -183,6 +218,9 @@ interface APILineItem {
   size_2_xl: number
   size_3_xl: number
   size_other: number
+  imprints?: APIImprint[]
+  mockups?: APIMockup[]
+  production_files?: APIProductionFile[]
 }
 
 interface APICustomer {
@@ -266,21 +304,51 @@ function transformSizes(apiLineItem: APILineItem): Size[] {
   return sizes
 }
 
+function transformMockup(apiMockup: APIMockup): Mockup {
+  return {
+    url: apiMockup.url,
+    thumbnailUrl: apiMockup.thumbnailUrl || apiMockup.thumbnail_url || apiMockup.url
+  }
+}
+
+function transformImprint(apiImprint: APIImprint, fallbackType: Imprint['type']): Imprint {
+  return {
+    id: String(apiImprint.id),
+    type: apiImprint.type ? inferImprintType(apiImprint.type, null) : fallbackType,
+    location: apiImprint.location || 'Front Center',
+    colors: apiImprint.colors || 1,
+    width: apiImprint.width || 12,
+    height: apiImprint.height || 14,
+    description: apiImprint.description || '',
+    artwork: null,
+    mockups: (apiImprint.mockups || []).map(transformMockup)
+  }
+}
+
 function transformLineItem(apiLineItem: APILineItem, statusName: string): LineItem {
   const sizes = transformSizes(apiLineItem)
   const quantity = sizes.reduce((sum, s) => sum + s.quantity, 0) || apiLineItem.quantity || 0
   const unitPrice = parseFloat(String(apiLineItem.price)) || 0
+  
+  const fallbackImprintType = inferImprintType(statusName, apiLineItem.category)
 
-  // Create placeholder imprint based on status/category
-  const imprint: Imprint = {
-    id: `imp-${apiLineItem.id}`,
-    type: inferImprintType(statusName, apiLineItem.category),
-    location: 'Front Center',
-    colors: 1,
-    width: 12,
-    height: 14,
-    description: apiLineItem.category || 'Standard imprint',
-    artwork: null
+  // Transform imprints if available, otherwise create placeholder
+  let imprints: Imprint[]
+  if (apiLineItem.imprints && apiLineItem.imprints.length > 0) {
+    imprints = apiLineItem.imprints.map(imp => transformImprint(imp, fallbackImprintType))
+  } else {
+    // Create placeholder imprint based on status/category
+    imprints = [{
+      id: `imp-${apiLineItem.id}`,
+      type: fallbackImprintType,
+      location: 'Front Center',
+      colors: 1,
+      width: 12,
+      height: 14,
+      description: apiLineItem.category || 'Standard imprint',
+      artwork: null,
+      mockups: []
+    }]
   }
 
   return {
@@ -295,7 +363,12 @@ function transformLineItem(apiLineItem: APILineItem, statusName: string): LineIt
     quantity,
     unit_price: unitPrice,
     subtotal: unitPrice * quantity,
-    imprints: [imprint]
+    imprints,
+    mockups: (apiLineItem.mockups || []).map(transformMockup),
+    production_files: (apiLineItem.production_files || []).map(pf => ({
+      url: pf.url,
+      filename: pf.filename
+    }))
   }
 }
 

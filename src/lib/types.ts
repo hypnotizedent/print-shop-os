@@ -42,6 +42,16 @@ export interface APIOrder {
 export type ImprintLocation = 'Front' | 'Back' | 'Left Chest' | 'Right Sleeve' | 'Left Sleeve' | 'Neck';
 export type ImprintMethod = 'screen-print' | 'dtg' | 'embroidery' | 'vinyl' | 'digital-transfer';
 
+export interface Mockup {
+  url: string;
+  thumbnailUrl: string;
+}
+
+export interface ProductionFile {
+  url: string;
+  filename: string;
+}
+
 export interface Artwork {
   id: string;
   imprint_id: string;
@@ -63,6 +73,7 @@ export interface Imprint {
   height: number;
   artwork: Artwork | null;
   setup_fee: number;
+  mockups: Mockup[];
 }
 
 export interface SizeBreakdown {
@@ -86,6 +97,8 @@ export interface LineItem {
   unit_price: number;
   subtotal: number;
   imprints: Imprint[];
+  mockups: Mockup[];
+  production_files: ProductionFile[];
 }
 
 export interface Order {

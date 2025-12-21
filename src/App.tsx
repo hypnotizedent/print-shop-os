@@ -91,8 +91,11 @@ function App() {
         width: imp.width,
         height: imp.height,
         artwork: null,
-        setup_fee: 0
-      }))
+        setup_fee: 0,
+        mockups: imp.mockups || []
+      })),
+      mockups: li.mockups || [],
+      production_files: li.production_files || []
     })),
     subtotal: o.subtotal,
     tax: o.sales_tax,

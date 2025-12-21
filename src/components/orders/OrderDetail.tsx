@@ -202,7 +202,6 @@ export function OrderDetail({ order, transactions, onViewCustomer }: OrderDetail
 }
 
 function LineItemCard({ item, index }: { item: LineItem; index: number }) {
-  const mockups: string[] = [];
   const [imprints, setImprints] = useState<Imprint[]>(item.imprints);
   
   const handleImprintUpdate = (updatedImprint: Imprint) => {
@@ -212,60 +211,106 @@ function LineItemCard({ item, index }: { item: LineItem; index: number }) {
   };
   
   return (
-    <div className="p-4 bg-secondary/30 rounded-lg flex gap-4">
-      <div className="flex-1 min-w-0 space-y-3">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span className="text-xs bg-muted px-2 py-0.5 rounded font-medium">#{index + 1}</span>
-          <span>{item.product_sku}</span>
-          <span>•</span>
-          <span>{item.product_color}</span>
-        </div>
-        
-        <h4 className="font-medium text-base">{item.product_name}</h4>
-        
-        <div className="flex items-baseline gap-3">
-          <div className="font-semibold text-lg">{formatCurrency(item.subtotal)}</div>
-          <div className="text-sm text-muted-foreground">
-            {item.quantity} × {formatCurrency(item.unit_price)}
+    <div className="space-y-4">
+      <div className="p-4 bg-secondary/30 rounded-lg flex gap-4">
+        <div className="flex-1 min-w-0 space-y-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="text-xs bg-muted px-2 py-0.5 rounded font-medium">#{index + 1}</span>
+            <span>{item.product_sku}</span>
+            <span>•</span>
+            <span>{item.product_color}</span>
           </div>
-        </div>
-        
-        <SizeGrid sizes={item.sizes} />
-        
-        {imprints.length > 0 && (
-          <div className="space-y-1.5">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-              <Printer className="w-3 h-3" weight="bold" />
-              Imprints
-            </p>
-            <div className="flex items-center gap-2 flex-wrap">
-              {imprints.map(imprint => (
-                <ImprintCard 
-                  key={imprint.id} 
-                  imprint={imprint} 
-                  onUpdate={handleImprintUpdate}
-                />
-              ))}
+          
+          <h4 className="font-medium text-base">{item.product_name}</h4>
+          
+          <div className="flex items-baseline gap-3">
+            <div className="font-semibold text-lg">{formatCurrency(item.subtotal)}</div>
+            <div className="text-sm text-muted-foreground">
+              {item.quantity} × {formatCurrency(item.unit_price)}
             </div>
           </div>
-        )}
-      </div>
-      
-      <div className="flex-shrink-0 self-center">
-        <div className="w-24 h-24 bg-muted rounded-lg border border-border flex items-center justify-center">
-          {mockups.length > 0 ? (
-            <img src={mockups[0]} alt="Product mockup" className="w-full h-full object-cover rounded-lg" />
-          ) : (
-            <Image className="w-8 h-8 text-muted-foreground" weight="bold" />
-          )}
+          
+          <SizeGrid sizes={item.sizes} />
+        </div>
+        
+        <div className="flex-shrink-0 self-center">
+          <div className="w-24 h-24 bg-muted rounded-lg border border-border flex items-center justify-center overflow-hidden">
+            {item.mockups.length > 0 ? (
+              <img src={item.mockups[0].thumbnailUrl} alt="Product mockup" className="w-full h-full object-cover" />
+            ) : (
+              <Image className="w-8 h-8 text-muted-foreground" weight="bold" />
+            )}
+          </div>
         </div>
       </div>
+      
+      {item.mockups.length > 0 && (
+        <div className="pl-4">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1">
+            <FileImage className="w-3 h-3" weight="bold" />
+            Line Item Mockups
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {item.mockups.map((mockup, idx) => (
+              <a
+                key={idx}
+                href={mockup.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-20 h-20 bg-muted rounded border border-border overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all"
+              >
+                <img src={mockup.thumbnailUrl} alt={`Mockup ${idx + 1}`} className="w-full h-full object-cover" />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {item.production_files.length > 0 && (
+        <div className="pl-4">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1">
+            <FilePdf className="w-3 h-3" weight="bold" />
+            Production Files
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            {item.production_files.map((file, idx) => (
+              <a
+                key={idx}
+                href={file.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-2 bg-secondary/30 rounded border border-border hover:bg-secondary/50 transition-colors"
+              >
+                <FilePdf className="w-4 h-4 text-red-400" weight="bold" />
+                <span className="text-sm">{file.filename}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {imprints.length > 0 && (
+        <div className="pl-4">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1">
+            <Printer className="w-3 h-3" weight="bold" />
+            Imprints
+          </p>
+          <div className="space-y-3">
+            {imprints.map(imprint => (
+              <ImprintCard 
+                key={imprint.id} 
+                imprint={imprint} 
+                onUpdate={handleImprintUpdate}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function ImprintCard({ imprint, onUpdate }: { imprint: Imprint; onUpdate: (imprint: Imprint) => void }) {
-  const mockups: string[] = [];
   const [isEditing, setIsEditing] = useState(false);
   const [editedImprint, setEditedImprint] = useState<Imprint>(imprint);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -338,28 +383,55 @@ function ImprintCard({ imprint, onUpdate }: { imprint: Imprint; onUpdate: (impri
   };
   
   return (
-    <>
-      <div 
-        className="group relative w-10 h-10 bg-muted rounded border border-border flex-shrink-0 flex items-center justify-center hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer"
-        onClick={() => setIsEditing(true)}
-        title={imprint.artwork ? `${imprint.artwork.filename} • ${imprint.colors} color${imprint.colors !== 1 ? 's' : ''} • ${imprint.width}" × ${imprint.height}"` : `${imprint.colors} color${imprint.colors !== 1 ? 's' : ''} • ${imprint.width}" × ${imprint.height}"`}
-      >
-        {mockups.length > 0 ? (
-          <img src={mockups[0]} alt="Mockup" className="w-full h-full object-cover rounded" />
-        ) : (
-          <Image className="w-4 h-4 text-muted-foreground" weight="bold" />
-        )}
-        {imprint.artwork && (
-          <div className="absolute -top-1 -right-1">
-            {imprint.artwork.approved ? (
-              <CheckCircle className="w-3 h-3 text-green-400 bg-background rounded-full" weight="fill" />
-            ) : (
-              <XCircle className="w-3 h-3 text-yellow-400 bg-background rounded-full" weight="fill" />
-            )}
+    <div className="bg-secondary/20 rounded-lg p-3 border border-border">
+      <div className="flex items-start gap-3">
+        <button
+          onClick={() => setIsEditing(true)}
+          className="group relative w-16 h-16 bg-muted rounded border border-border flex-shrink-0 flex items-center justify-center hover:ring-2 hover:ring-primary/20 transition-all overflow-hidden"
+        >
+          {imprint.mockups.length > 0 ? (
+            <img src={imprint.mockups[0].thumbnailUrl} alt="Imprint mockup" className="w-full h-full object-cover" />
+          ) : (
+            <Image className="w-6 h-6 text-muted-foreground" weight="bold" />
+          )}
+          {imprint.artwork && (
+            <div className="absolute -top-1 -right-1">
+              {imprint.artwork.approved ? (
+                <CheckCircle className="w-4 h-4 text-green-400 bg-background rounded-full" weight="fill" />
+              ) : (
+                <XCircle className="w-4 h-4 text-yellow-400 bg-background rounded-full" weight="fill" />
+              )}
+            </div>
+          )}
+          <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <Pencil className="w-4 h-4 text-primary" weight="bold" />
           </div>
-        )}
-        <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity rounded flex items-center justify-center">
-          <Pencil className="w-4 h-4 text-primary" weight="bold" />
+        </button>
+        
+        <div className="flex-1 min-w-0 space-y-2">
+          <div>
+            <h5 className="font-medium text-sm">{imprint.location}</h5>
+            <p className="text-xs text-muted-foreground">
+              {imprint.width}" × {imprint.height}" • {imprint.colors} color{imprint.colors !== 1 ? 's' : ''}
+            </p>
+          </div>
+          
+          {imprint.mockups.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              {imprint.mockups.map((mockup, idx) => (
+                <a
+                  key={idx}
+                  href={mockup.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-14 h-14 bg-muted rounded border border-border overflow-hidden hover:ring-2 hover:ring-primary/50 transition-all"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <img src={mockup.thumbnailUrl} alt={`Mockup ${idx + 1}`} className="w-full h-full object-cover" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -530,9 +602,6 @@ function ImprintCard({ imprint, onUpdate }: { imprint: Imprint; onUpdate: (impri
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{imprint.artwork.filename}</p>
-                      <p className="text-xs text-muted-foreground">
-                      className="text-primary hover:underline text-xs"
-                      </p>
                       {imprint.artwork.notes && (
                         <p className="text-xs text-muted-foreground italic mt-1">{imprint.artwork.notes}</p>
                       )}
@@ -560,6 +629,6 @@ function ImprintCard({ imprint, onUpdate }: { imprint: Imprint; onUpdate: (impri
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
