@@ -68,7 +68,7 @@ export function Dashboard({ orders, customers, onViewOrder }: DashboardProps) {
       </div>
 
       <Card className="bg-card/50 border-border/50">
-        <CardContent className="p-4">
+        <CardContent className="p-2">
           <div className="flex items-center justify-between mb-2">
             <div>
               <h2 className="text-base font-semibold">All Active Jobs</h2>
