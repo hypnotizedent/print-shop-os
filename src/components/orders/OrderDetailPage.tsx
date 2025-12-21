@@ -636,73 +636,74 @@ function LineItemCard({ item, index, orderStatus, imprintMockups, onImageClick }
       </div>
 
       {/* Imprints Section */}
-      <div className="space-y-3">
+      <div className="space-y-1.5">
         <p className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1">
           <Printer className="w-3 h-3" weight="bold" />
           Imprints
         </p>
         
-        {/* Multiple imprint cards */}
-        {imprintMockups.length > 0 ? (
-          imprintMockups.map((mockup, mockupIdx) => (
-            <div key={mockup.id} className="p-4 bg-card rounded-lg border border-border">
-              <div className="flex flex-col gap-3">
-                {/* Imprint Mockup Thumbnail */}
-                <div className="flex gap-3">
-                  {isPdfUrl(mockup.url) ? (
-                    <PdfThumbnail
-                      thumbnailUrl={mockup.thumbnail_url}
-                      pdfUrl={mockup.url}
-                      name={mockup.name || 'Imprint mockup'}
-                      size="large"
+        <div className="flex items-center gap-2 flex-wrap">
+          {imprintMockups.length > 0 ? (
+            <>
+              {imprintMockups.map((mockup, mockupIdx) => (
+                isPdfUrl(mockup.url) ? (
+                  <PdfThumbnail
+                    key={mockup.id}
+                    thumbnailUrl={mockup.thumbnail_url}
+                    pdfUrl={mockup.url}
+                    name={mockup.name || 'Imprint mockup'}
+                    size="small"
+                    className="w-10 h-10"
+                  />
+                ) : (
+                  <button
+                    key={mockup.id}
+                    onClick={() => onImageClick?.([mockup], 0)}
+                    className="w-10 h-10 flex-shrink-0 rounded border border-border bg-muted hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer overflow-hidden"
+                    title={mockup.name || `Imprint ${mockupIdx + 1}`}
+                  >
+                    <img
+                      src={mockup.url}
+                      alt={mockup.name || 'Imprint mockup'}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
                     />
-                  ) : (
-                    <button
-                      onClick={() => onImageClick?.([mockup], 0)}
-                      className="flex-shrink-0 cursor-pointer group"
-                    >
-                      <img
-                        src={mockup.url}
-                        alt={mockup.name || 'Imprint mockup'}
-                        className="w-24 h-24 object-contain rounded-lg bg-muted border-2 border-border hover:border-primary transition-all hover:shadow-lg group-hover:scale-105"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    </button>
-                  )}
-                  <div className="flex-1 flex items-center">
-                    <p className="text-sm text-muted-foreground">
-                      {mockup.name || `Imprint ${mockupIdx + 1}`}
-                    </p>
-                  </div>
-                </div>
+                  </button>
+                )
+              ))}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 border border-dashed border-border hover:border-primary hover:bg-primary/5"
+                onClick={() => {
+                  // TODO: Implement add imprint functionality
+                }}
+                title="Add Imprint"
+              >
+                <Printer className="w-4 h-4" weight="bold" />
+              </Button>
+            </>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 flex-shrink-0 rounded border border-dashed border-border bg-muted/30 flex items-center justify-center">
+                <Image className="w-4 h-4 text-muted-foreground/50" weight="duotone" />
               </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-10 h-10 border border-dashed border-border hover:border-primary hover:bg-primary/5"
+                onClick={() => {
+                  // TODO: Implement add imprint functionality
+                }}
+                title="Add Imprint"
+              >
+                <Printer className="w-4 h-4" weight="bold" />
+              </Button>
             </div>
-          ))
-        ) : (
-          <div className="p-4 bg-card rounded-lg border border-border">
-            <div className="flex items-center justify-center py-8 text-muted-foreground">
-              <div className="text-center">
-                <Image className="w-12 h-12 mx-auto mb-2 opacity-30" weight="duotone" />
-                <p className="text-sm">No imprints available</p>
-              </div>
-            </div>
-          </div>
-        )}
-        
-        {/* Add Imprint Button */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2"
-          onClick={() => {
-            // TODO: Implement add imprint functionality
-          }}
-        >
-          <Printer className="w-4 h-4" weight="bold" />
-          Add Imprint
-        </Button>
+          )}
+        </div>
       </div>
     </div>
   );
