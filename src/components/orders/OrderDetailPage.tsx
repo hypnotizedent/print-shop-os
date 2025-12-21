@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +27,10 @@ import {
   Copy,
   Trash,
   Columns,
-  Stamp
+  Stamp,
+  PencilSimple,
+  Check,
+  X
 } from '@phosphor-icons/react';
 import { formatCurrency, formatDate, getAPIStatusColor, getAPIStatusLabel } from '@/lib/helpers';
 import { SizeBreakdown } from '@/lib/types';
@@ -521,12 +526,181 @@ interface LineItemCardProps {
   onConfigChange: (config: ColumnConfig) => void;
 }
 
+interface ImprintCardProps {
+  imprint: LineItemImprint;
+  onImageClick?: (images: Array<{ url: string; name: string; id: string }>, index: number) => void;
+  isLineItemEditing: boolean;
+}
+
+function ImprintCard({ imprint, onImageClick, isLineItemEditing }: ImprintCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedImprint, setEditedImprint] = useState(imprint);
+  
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditedImprint(imprint);
+  };
+  
+  const handleSave = () => {
+    toast.success('Imprint updated');
+    setIsEditing(false);
+  };
+  
+  const handleCancel = () => {
+    setEditedImprint(imprint);
+    setIsEditing(false);
+  };
+  
+  const handleDelete = () => {
+    toast.success('Imprint deleted');
+  };
+  
+  return (
+    <div className="p-2 bg-card/50 rounded border border-border/50 space-y-1.5 relative group">
+      {/* Edit/Delete controls */}
+      {!isLineItemEditing && (
+        <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity flex gap-0.5">
+          {isEditing ? (
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 text-green-500 hover:text-green-400 hover:bg-green-500/10"
+                onClick={handleSave}
+                title="Save changes"
+              >
+                <Check size={14} weight="bold" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 text-destructive hover:bg-destructive/10"
+                onClick={handleCancel}
+                title="Cancel editing"
+              >
+                <X size={14} weight="bold" />
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6"
+                onClick={handleEdit}
+                title="Edit imprint"
+              >
+                <PencilSimple size={14} weight="bold" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-6 w-6 text-destructive hover:bg-destructive/10"
+                onClick={handleDelete}
+                title="Delete imprint"
+              >
+                <Trash size={14} weight="bold" />
+              </Button>
+            </>
+          )}
+        </div>
+      )}
+      
+      <div className="flex items-start gap-2">
+        <Stamp className="w-3.5 h-3.5 text-primary/60 mt-0.5 flex-shrink-0" weight="duotone" />
+        <div className="flex-1 min-w-0 pr-12">
+          {isEditing ? (
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <Input
+                  value={editedImprint.location || ''}
+                  onChange={(e) => setEditedImprint({ ...editedImprint, location: e.target.value })}
+                  className="h-6 text-xs font-medium flex-1"
+                  placeholder="Location (e.g., Front, Back)"
+                />
+                <Input
+                  value={editedImprint.decorationType || ''}
+                  onChange={(e) => setEditedImprint({ ...editedImprint, decorationType: e.target.value })}
+                  className="h-6 text-xs w-28"
+                  placeholder="Type"
+                />
+              </div>
+              <Textarea
+                value={editedImprint.description || ''}
+                onChange={(e) => setEditedImprint({ ...editedImprint, description: e.target.value })}
+                className="text-[10px] min-h-[40px] resize-none"
+                placeholder="Description"
+              />
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-xs font-medium">
+                  {imprint.location || 'Imprint'}
+                </span>
+                {imprint.decorationType && (
+                  <Badge variant="secondary" className="text-[10px] px-1 py-0 bg-primary/10 text-primary">
+                    {imprint.decorationType}
+                  </Badge>
+                )}
+              </div>
+              {imprint.description && imprint.description !== imprint.location && (
+                <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">
+                  {imprint.description.split('\n').slice(1).join(' ').trim() || ''}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+      
+      {/* Mockups for this imprint */}
+      {imprint.mockups && imprint.mockups.length > 0 && (
+        <div className="flex items-center gap-1.5 flex-wrap pl-5">
+          {imprint.mockups.map((mockup) => (
+            isPdfUrl(mockup.url) ? (
+              <PdfThumbnail
+                key={mockup.id}
+                thumbnailUrl={mockup.thumbnail_url}
+                pdfUrl={mockup.url}
+                name={mockup.name || 'Imprint mockup'}
+                size="small"
+                className="w-12 h-12"
+              />
+            ) : (
+              <button
+                key={mockup.id}
+                onClick={() => onImageClick?.([mockup], 0)}
+                className="w-12 h-12 flex-shrink-0 rounded border border-border bg-muted hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer overflow-hidden"
+                title={mockup.name || 'Mockup'}
+              >
+                <img
+                  src={mockup.url}
+                  alt={mockup.name || 'Imprint mockup'}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </button>
+            )
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 const ADULT_SIZE_LABELS = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', '6XL'] as const;
 
 function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, onConfigChange }: LineItemCardProps) {
-  const sizes = mapSizesToGrid(item.sizes);
-  const total = item.totalQuantity;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedItem, setEditedItem] = useState(item);
+  const [editedSizes, setEditedSizes] = useState(mapSizesToGrid(item.sizes));
   const [manageColumnsOpen, setManageColumnsOpen] = useState(false);
+  
+  const sizes = isEditing ? editedSizes : mapSizesToGrid(item.sizes);
+  const total = Object.values(sizes).reduce((sum, qty) => sum + qty, 0);
   
   const handleDuplicate = () => {
     toast.success('Line item duplicated');
@@ -534,6 +708,28 @@ function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, on
   
   const handleDelete = () => {
     toast.success('Line item deleted');
+  };
+  
+  const handleEdit = () => {
+    setIsEditing(true);
+    setEditedItem(item);
+    setEditedSizes(mapSizesToGrid(item.sizes));
+  };
+  
+  const handleSave = () => {
+    toast.success('Line item updated');
+    setIsEditing(false);
+  };
+  
+  const handleCancel = () => {
+    setEditedItem(item);
+    setEditedSizes(mapSizesToGrid(item.sizes));
+    setIsEditing(false);
+  };
+  
+  const handleSizeChange = (size: string, value: string) => {
+    const numValue = parseInt(value) || 0;
+    setEditedSizes(prev => ({ ...prev, [size]: numValue }));
   };
 
   const lineItemMockups = item.mockup ? [item.mockup] : [];
@@ -549,28 +745,55 @@ function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, on
     <>
       <div className="p-3 bg-secondary/30 rounded-lg space-y-3 relative">
         {/* 3-dot menu */}
-        <div className="absolute top-2 right-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7">
-                <DotsThree size={18} weight="bold" />
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1">
+          {isEditing ? (
+            <>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7 text-green-500 hover:text-green-400 hover:bg-green-500/10"
+                onClick={handleSave}
+                title="Save changes"
+              >
+                <Check size={18} weight="bold" />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleDuplicate} className="gap-2 cursor-pointer">
-                <Copy className="w-4 h-4" weight="bold" />
-                Duplicate
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleDelete} className="gap-2 cursor-pointer text-destructive">
-                <Trash className="w-4 h-4" weight="bold" />
-                Delete
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setManageColumnsOpen(true)} className="gap-2 cursor-pointer">
-                <Columns className="w-4 h-4" weight="bold" />
-                Manage Columns
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                onClick={handleCancel}
+                title="Cancel editing"
+              >
+                <X size={18} weight="bold" />
+              </Button>
+            </>
+          ) : (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <DotsThree size={18} weight="bold" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleEdit} className="gap-2 cursor-pointer">
+                  <PencilSimple className="w-4 h-4" weight="bold" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDuplicate} className="gap-2 cursor-pointer">
+                  <Copy className="w-4 h-4" weight="bold" />
+                  Duplicate
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDelete} className="gap-2 cursor-pointer text-destructive">
+                  <Trash className="w-4 h-4" weight="bold" />
+                  Delete
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setManageColumnsOpen(true)} className="gap-2 cursor-pointer">
+                  <Columns className="w-4 h-4" weight="bold" />
+                  Manage Columns
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
 
         <div className="flex items-start gap-3">
@@ -608,38 +831,89 @@ function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, on
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5">
               <span className="text-xs bg-muted px-1.5 py-0.5 rounded">#{index + 1}</span>
-              <h4 className="font-medium text-sm truncate">
-                {item.description || item.styleNumber || 'Line Item'}
-              </h4>
+              {isEditing ? (
+                <Input
+                  value={editedItem.description || ''}
+                  onChange={(e) => setEditedItem({ ...editedItem, description: e.target.value })}
+                  className="h-7 text-sm font-medium flex-1"
+                  placeholder="Line item description"
+                />
+              ) : (
+                <h4 className="font-medium text-sm truncate">
+                  {item.description || item.styleNumber || 'Line Item'}
+                </h4>
+              )}
             </div>
             <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground flex-wrap">
-              {columnConfig.itemNumber && item.styleNumber && <span>{item.styleNumber}</span>}
-              {columnConfig.itemNumber && columnConfig.color && item.styleNumber && item.color && <span>•</span>}
-              {columnConfig.color && item.color && <span>{item.color}</span>}
-              {columnConfig.category && item.category && (
+              {isEditing ? (
                 <>
-                  <span>•</span>
-                  <Badge variant="outline" className="text-xs px-1 py-0">
-                    {item.category}
-                  </Badge>
+                  {columnConfig.itemNumber && (
+                    <Input
+                      value={editedItem.styleNumber || ''}
+                      onChange={(e) => setEditedItem({ ...editedItem, styleNumber: e.target.value })}
+                      className="h-6 text-xs w-24"
+                      placeholder="SKU"
+                    />
+                  )}
+                  {columnConfig.itemNumber && columnConfig.color && <span>•</span>}
+                  {columnConfig.color && (
+                    <Input
+                      value={editedItem.color || ''}
+                      onChange={(e) => setEditedItem({ ...editedItem, color: e.target.value })}
+                      className="h-6 text-xs w-24"
+                      placeholder="Color"
+                    />
+                  )}
                 </>
-              )}
-              {!columnConfig.itemNumber && !columnConfig.color && !columnConfig.category && item.styleNumber && (
-                <span>{item.styleNumber}</span>
-              )}
-              {!columnConfig.itemNumber && !columnConfig.color && !columnConfig.category && item.styleNumber && item.color && (
-                <span>•</span>
-              )}
-              {!columnConfig.itemNumber && !columnConfig.color && !columnConfig.category && item.color && (
-                <span>{item.color}</span>
+              ) : (
+                <>
+                  {columnConfig.itemNumber && item.styleNumber && <span>{item.styleNumber}</span>}
+                  {columnConfig.itemNumber && columnConfig.color && item.styleNumber && item.color && <span>•</span>}
+                  {columnConfig.color && item.color && <span>{item.color}</span>}
+                  {columnConfig.category && item.category && (
+                    <>
+                      <span>•</span>
+                      <Badge variant="outline" className="text-xs px-1 py-0">
+                        {item.category}
+                      </Badge>
+                    </>
+                  )}
+                  {!columnConfig.itemNumber && !columnConfig.color && !columnConfig.category && item.styleNumber && (
+                    <span>{item.styleNumber}</span>
+                  )}
+                  {!columnConfig.itemNumber && !columnConfig.color && !columnConfig.category && item.styleNumber && item.color && (
+                    <span>•</span>
+                  )}
+                  {!columnConfig.itemNumber && !columnConfig.color && !columnConfig.category && item.color && (
+                    <span>{item.color}</span>
+                  )}
+                </>
               )}
             </div>
           </div>
           <div className="text-right ml-3">
-            <div className="font-medium text-sm">{formatCurrency(item.totalCost)}</div>
-            <div className="text-xs text-muted-foreground">
-              {item.totalQuantity} × {formatCurrency(item.unitCost)}
-            </div>
+            {isEditing ? (
+              <div className="space-y-1">
+                <Input
+                  type="number"
+                  value={editedItem.unitCost}
+                  onChange={(e) => setEditedItem({ ...editedItem, unitCost: parseFloat(e.target.value) || 0 })}
+                  className="h-7 text-sm font-medium w-24 text-right"
+                  step="0.01"
+                  placeholder="Unit cost"
+                />
+                <div className="text-xs text-muted-foreground">
+                  {total} × {formatCurrency(editedItem.unitCost)}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="font-medium text-sm">{formatCurrency(item.totalCost)}</div>
+                <div className="text-xs text-muted-foreground">
+                  {item.totalQuantity} × {formatCurrency(item.unitCost)}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -655,15 +929,25 @@ function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, on
               <span className="text-muted-foreground font-medium px-1.5 py-0.5">
                 {size}
               </span>
-              <span
-                className={`px-1.5 py-0.5 rounded ${
-                  sizes[size] > 0
-                    ? 'bg-primary/20 text-primary font-medium'
-                    : 'text-muted-foreground/50'
-                }`}
-              >
-                {sizes[size]}
-              </span>
+              {isEditing ? (
+                <Input
+                  type="number"
+                  value={sizes[size]}
+                  onChange={(e) => handleSizeChange(size, e.target.value)}
+                  className="h-7 w-12 text-center text-xs p-0"
+                  min="0"
+                />
+              ) : (
+                <span
+                  className={`px-1.5 py-0.5 rounded ${
+                    sizes[size] > 0
+                      ? 'bg-primary/20 text-primary font-medium'
+                      : 'text-muted-foreground/50'
+                  }`}
+                >
+                  {sizes[size]}
+                </span>
+              )}
             </div>
           ))}
           {columnConfig.quantity && (
@@ -690,62 +974,12 @@ function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, on
         {item.imprints && item.imprints.length > 0 ? (
           <div className="mt-2 space-y-1.5">
             {item.imprints.map((imprint) => (
-              <div key={imprint.id} className="p-2 bg-card/50 rounded border border-border/50 space-y-1.5">
-                <div className="flex items-start gap-2">
-                  <Stamp className="w-3.5 h-3.5 text-primary/60 mt-0.5 flex-shrink-0" weight="duotone" />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      <span className="text-xs font-medium">
-                        {imprint.location || 'Imprint'}
-                      </span>
-                      {imprint.decorationType && (
-                        <Badge variant="secondary" className="text-[10px] px-1 py-0 bg-primary/10 text-primary">
-                          {imprint.decorationType}
-                        </Badge>
-                      )}
-                    </div>
-                    {imprint.description && imprint.description !== imprint.location && (
-                      <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">
-                        {imprint.description.split('\n').slice(1).join(' ').trim() || ''}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                
-                {/* Mockups for this imprint */}
-                {imprint.mockups && imprint.mockups.length > 0 && (
-                  <div className="flex items-center gap-1.5 flex-wrap pl-5">
-                    {imprint.mockups.map((mockup) => (
-                      isPdfUrl(mockup.url) ? (
-                        <PdfThumbnail
-                          key={mockup.id}
-                          thumbnailUrl={mockup.thumbnail_url}
-                          pdfUrl={mockup.url}
-                          name={mockup.name || 'Imprint mockup'}
-                          size="small"
-                          className="w-12 h-12"
-                        />
-                      ) : (
-                        <button
-                          key={mockup.id}
-                          onClick={() => onImageClick?.([mockup], 0)}
-                          className="w-12 h-12 flex-shrink-0 rounded border border-border bg-muted hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer overflow-hidden"
-                          title={mockup.name || 'Mockup'}
-                        >
-                          <img
-                            src={mockup.url}
-                            alt={mockup.name || 'Imprint mockup'}
-                            className="w-full h-full object-cover"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                          />
-                        </button>
-                      )
-                    ))}
-                  </div>
-                )}
-              </div>
+              <ImprintCard 
+                key={imprint.id} 
+                imprint={imprint} 
+                onImageClick={onImageClick}
+                isLineItemEditing={isEditing}
+              />
             ))}
           </div>
         ) : (
@@ -758,19 +992,21 @@ function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, on
         )}
         
         {/* Add Imprint Button */}
-        <div className="pt-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 gap-2 border border-dashed border-border hover:border-primary hover:bg-primary/5"
-            onClick={() => {
-              // TODO: Implement add imprint functionality
-            }}
-          >
-            <Printer className="w-3.5 h-3.5" weight="bold" />
-            Add Imprint
-          </Button>
-        </div>
+        {!isEditing && (
+          <div className="pt-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 gap-2 border border-dashed border-border hover:border-primary hover:bg-primary/5"
+              onClick={() => {
+                toast.info('Add imprint functionality coming soon');
+              }}
+            >
+              <Printer className="w-3.5 h-3.5" weight="bold" />
+              Add Imprint
+            </Button>
+          </div>
+        )}
       </div>
       </div>
 
