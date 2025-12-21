@@ -69,11 +69,11 @@ export function Dashboard({ orders, customers, onViewOrder, onNavigateToOrders }
 
       <Card className="bg-card/50 border-border/50">
         <CardContent className="px-4 pt-2 pb-2">
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center justify-between mb-2">
             <Badge 
               variant="secondary"
               onClick={onNavigateToOrders}
-              className="text-xs font-medium px-1.5 py-0 cursor-pointer hover:bg-secondary/80 transition-colors"
+              className="text-xs font-medium px-1.5 py-0 cursor-pointer hover:bg-secondary/80 transition-colors border border-border/40"
             >
               All Orders
             </Badge>
