@@ -842,9 +842,9 @@ function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, on
                 <h4 className="font-medium text-sm truncate">
                   {item.description || item.styleNumber || 'Line Item'}
                 </h4>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground flex-wrap">
+      </div>  )}
+      </div>
+
               {isEditing ? (
                 <>
                   {columnConfig.itemNumber && (
