@@ -810,6 +810,7 @@ function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, on
 
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0 pr-3">
+            <div className="flex items-center gap-2">
               <span className="text-xs bg-muted px-1.5 py-0.5 rounded">#{index + 1}</span>
               {isEditing ? (
                 <Input
@@ -879,7 +880,8 @@ function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, on
               <div className="space-y-1">
                 <Input
                   type="number"
-                  value={editedItem.unitCost}get.value) || 0 })}
+                  value={editedItem.unitCost}
+                  onChange={(e) => setEditedItem({ ...editedItem, unitCost: parseFloat(e.target.value) || 0 })}
                   className="h-7 text-sm font-medium w-24 text-right"
                   step="0.01"
                   placeholder="Unit cost"
@@ -922,7 +924,7 @@ function LineItemCard({ item, index, orderStatus, onImageClick, columnConfig, on
           )}
         </div>
 
-ze Grid */}
+        {/* Size Grid */}
         <div className="inline-flex gap-0.5 text-xs">
           {ADULT_SIZE_LABELS.filter(size => columnConfig.sizes.adult[size as keyof typeof columnConfig.sizes.adult]).map(size => (
             <div
@@ -1011,11 +1013,10 @@ ze Grid */}
           </div>
         )}
       </div>
-    </div>
 
-    </div>l
-        open={manageColumnsOpen}
     <ManageColumnsModal
+        open={manageColumnsOpen}
+        onOpenChange={setManageColumnsOpen}
         config={columnConfig}
         onChange={onConfigChange}
       />
