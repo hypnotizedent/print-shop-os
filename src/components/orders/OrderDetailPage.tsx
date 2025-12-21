@@ -587,36 +587,6 @@ function LineItemCard({ item, index, orderStatus, imprintMockups, onImageClick, 
         </div>
 
         <div className="flex items-start gap-4">
-        <div className="flex-1 min-w-0 flex items-start justify-between pr-12">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-muted px-2 py-0.5 rounded">#{index + 1}</span>
-              <h4 className="font-medium truncate">
-                {item.description || item.styleNumber || 'Line Item'}
-              </h4>
-            </div>
-            <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground flex-wrap">
-              {columnConfig.itemNumber && item.styleNumber && <span>{item.styleNumber}</span>}
-              {columnConfig.itemNumber && columnConfig.color && item.styleNumber && item.color && <span>•</span>}
-              {columnConfig.color && item.color && <span>{item.color}</span>}
-              {columnConfig.category && item.category && (
-                <>
-                  <span>•</span>
-                  <Badge variant="outline" className="text-xs">
-                    {item.category}
-                  </Badge>
-                </>
-              )}
-              {!columnConfig.itemNumber && !columnConfig.color && !columnConfig.category && item.styleNumber && (
-                <span>{item.styleNumber}</span>
-              )}
-              {!columnConfig.itemNumber && !columnConfig.color && !columnConfig.category && item.styleNumber && item.color && (
-                <span>•</span>
-              )}
-              {!columnConfig.itemNumber && !columnConfig.color && !columnConfig.category && item.color && (
-                <span>{item.color}</span>
-              )}
-            </div>
           </div>
           <div className="text-right ml-4">
             <div className="font-medium">{formatCurrency(item.totalCost)}</div>
@@ -655,36 +625,36 @@ function LineItemCard({ item, index, orderStatus, imprintMockups, onImageClick, 
               <Image className="w-6 h-6 text-muted-foreground/50" weight="duotone" />
             </div>
           )}
-      </div>
 
-      {/* Size Grid */}
-      <div className="overflow-x-auto">
-        <div className="inline-flex gap-1 text-xs">
-          {ADULT_SIZE_LABELS.filter(size => columnConfig.sizes.adult[size as keyof typeof columnConfig.sizes.adult]).map(size => (
-            <div
-              key={size}
-              className="flex flex-col items-center min-w-[40px]"
-            >
-              <span className="text-muted-foreground font-medium px-2 py-1">
-                {size}
-              </span>
-              <span
-                className={`px-2 py-1 rounded ${
-                  sizes[size] > 0
-                    ? 'bg-primary/20 text-primary font-medium'
-                    : 'text-muted-foreground/50'
-                }`}
+          {/* Mockup Thumbnail */}
+          {allLineItemMockups.length > 0 && allLineItemMockups[0] ? (
+            isPdfUrl(allLineItemMockups[0].url) ? (
+              <PdfThumbnail
+                thumbnailUrl={allLineItemMockups[0].thumbnail_url}
+                pdfUrl={allLineItemMockups[0].url}
+                name={allLineItemMockups[0].name}
+                size="large"
+              />
+            ) : (
+              <button
+                onClick={() => onImageClick?.(allLineItemMockups, 0)}
+                className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-card border border-border hover:border-primary transition-colors cursor-pointer"
               >
-                {sizes[size]}
-              </span>
+                <img
+                  src={allLineItemMockups[0].url}
+                  alt={allLineItemMockups[0].name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              </button>
+            )
+          ) : (
+            <div className="flex-shrink-0 w-20 h-20 rounded-lg bg-muted/50 border border-border flex items-center justify-center">
+              <Image className="w-6 h-6 text-muted-foreground/50" weight="duotone" />
             </div>
-          ))}
-          {columnConfig.quantity && (
-            <div className="flex flex-col items-center min-w-[50px] border-l border-border pl-1 ml-1">
-              <span className="text-muted-foreground font-medium px-2 py-1">
-                Total
-              </span>
-              <span className="px-2 py-1 font-semibold">
+          )}
                 {total}
               </span>
             </div>
