@@ -161,6 +161,7 @@ function App() {
             orders={orders} 
             customers={customers}
             onViewOrder={handleViewOrder}
+            onNavigateToOrders={() => setCurrentView('orders')}
           />
         );
       case 'orders':

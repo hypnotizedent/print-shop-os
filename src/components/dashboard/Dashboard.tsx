@@ -12,9 +12,10 @@ interface DashboardProps {
   orders: Order[];
   customers: Customer[];
   onViewOrder: (orderId: string) => void;
+  onNavigateToOrders?: () => void;
 }
 
-export function Dashboard({ orders, customers, onViewOrder }: DashboardProps) {
+export function Dashboard({ orders, customers, onViewOrder, onNavigateToOrders }: DashboardProps) {
   const activeJobs = orders.filter(o => 
     o.status !== 'COMPLETE' && o.status !== 'QUOTE'
   );
@@ -69,7 +70,10 @@ export function Dashboard({ orders, customers, onViewOrder }: DashboardProps) {
       <Card className="bg-card/50 border-border/50">
         <CardContent className="px-4 pt-2 pb-2">
           <div className="flex items-center justify-between mb-4">
-            <button className="bg-secondary/50 hover:bg-secondary text-secondary-foreground text-xs font-medium px-4 py-1 rounded-full transition-colors">
+            <button 
+              onClick={onNavigateToOrders}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold px-5 py-1.5 rounded-full transition-all shadow-sm hover:shadow-md hover:scale-105 active:scale-100"
+            >
               All Orders
             </button>
           </div>
