@@ -668,35 +668,47 @@ function ImprintCard({ imprint, onImageClick, isLineItemEditing }: ImprintCardPr
       
       {/* Mockups for this imprint */}
       {imprint.mockups && imprint.mockups.length > 0 && (
-        <div className="flex items-center gap-1.5 flex-wrap pl-5">
-          {imprint.mockups.map((mockup) => (
-            isPdfUrl(mockup.url) ? (
-              <PdfThumbnail
-                key={mockup.id}
-                thumbnailUrl={mockup.thumbnail_url}
-                pdfUrl={mockup.url}
-                name={mockup.name || 'Imprint mockup'}
-                size="small"
-                className="w-12 h-12"
-              />
-            ) : (
-              <button
-                key={mockup.id}
-                onClick={() => onImageClick?.([mockup], 0)}
-                className="w-12 h-12 flex-shrink-0 rounded border border-border bg-muted hover:ring-2 hover:ring-primary/20 transition-all cursor-pointer overflow-hidden"
-                title={mockup.name || 'Mockup'}
-              >
-                <img
-                  src={mockup.url}
-                  alt={mockup.name || 'Imprint mockup'}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
+        <div className="pl-5 pt-1">
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">
+            Mockups ({imprint.mockups.length})
+          </p>
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {imprint.mockups.map((mockup, idx) => (
+              isPdfUrl(mockup.url) ? (
+                <PdfThumbnail
+                  key={mockup.id}
+                  thumbnailUrl={mockup.thumbnail_url}
+                  pdfUrl={mockup.url}
+                  name={mockup.name || 'Imprint mockup'}
+                  size="small"
+                  className="w-14 h-14"
                 />
-              </button>
-            )
-          ))}
+              ) : (
+                <button
+                  key={mockup.id}
+                  onClick={() => {
+                    const allMockups = imprint.mockups?.map(m => ({
+                      url: m.url,
+                      name: m.name || 'Imprint mockup',
+                      id: String(m.id)
+                    })) || [];
+                    onImageClick?.(allMockups, idx);
+                  }}
+                  className="w-14 h-14 flex-shrink-0 rounded border-2 border-border bg-muted hover:border-primary hover:shadow-lg transition-all cursor-pointer overflow-hidden"
+                  title={mockup.name || 'Mockup'}
+                >
+                  <img
+                    src={mockup.url}
+                    alt={mockup.name || 'Imprint mockup'}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </button>
+              )
+            ))}
+          </div>
         </div>
       )}
     </div>
