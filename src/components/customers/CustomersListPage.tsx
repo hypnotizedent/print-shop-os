@@ -10,13 +10,7 @@ import {
   CaretLeft,
   CaretRight,
   ArrowClockwise,
-  Warning,
-  Buildings,
-  Envelope,
-  Phone,
-  MapPin,
-  CurrencyDollar,
-  Clock
+  Warning
 } from '@phosphor-icons/react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -159,7 +153,7 @@ export function CustomersListPage({ onViewCustomer }: CustomersListPageProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-1.5">
           {customers.map((customer) => {
             const lastOrderDate = customer.last_order_date 
               ? formatDistanceToNow(new Date(customer.last_order_date), { addSuffix: true })
@@ -169,69 +163,47 @@ export function CustomersListPage({ onViewCustomer }: CustomersListPageProps) {
               <Card 
                 key={customer.id}
                 onClick={() => onViewCustomer(String(customer.id))}
-                className="bg-card/80 hover:bg-card border-border cursor-pointer transition-all hover:border-primary/50 overflow-hidden group"
+                className="bg-card/50 hover:bg-card/80 border-border/50 cursor-pointer transition-all hover:border-border overflow-hidden group"
               >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-base font-semibold text-foreground">
-                          {customer.name}
-                        </h3>
-                        <Badge className={`${getTierColor(customer.tier)} uppercase text-xs font-bold px-2 py-0.5`}>
-                          {customer.tier}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+                <CardContent className="px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-sm font-medium text-foreground truncate">
+                            {customer.name}
+                          </h3>
+                          <Badge className={`${getTierColor(customer.tier)} uppercase text-[10px] font-semibold px-1.5 py-0 h-4`}>
+                            {customer.tier}
+                          </Badge>
+                        </div>
                         {customer.company && (
-                          <div className="flex items-center gap-1.5">
-                            <Buildings className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{customer.company}</span>
-                          </div>
-                        )}
-                        {customer.email && (
-                          <div className="flex items-center gap-1.5">
-                            <Envelope className="w-4 h-4 flex-shrink-0" />
-                            <span className="truncate">{customer.email}</span>
-                          </div>
-                        )}
-                        {customer.phone && (
-                          <div className="flex items-center gap-1.5">
-                            <Phone className="w-4 h-4 flex-shrink-0" />
-                            <span>{customer.phone}</span>
-                          </div>
+                          <p className="text-xs text-muted-foreground truncate mt-0.5">
+                            {customer.company}
+                          </p>
                         )}
                       </div>
                     </div>
                     
-                    <div className="flex items-start gap-6 text-right">
-                      <div>
-                        <div className="flex items-center justify-end gap-1.5 text-xs text-muted-foreground mb-0.5">
-                          <CurrencyDollar className="w-3.5 h-3.5" />
-                          <span>Total Revenue</span>
-                        </div>
-                        <p className="text-lg font-semibold text-primary">
+                    <div className="flex items-center gap-6 flex-shrink-0">
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Revenue</p>
+                        <p className="text-sm font-semibold text-foreground">
                           ${customer.total_revenue.toFixed(2)}
                         </p>
                       </div>
                       
-                      <div>
-                        <div className="flex items-center justify-end gap-1.5 text-xs text-muted-foreground mb-0.5">
-                          <Clock className="w-3.5 h-3.5" />
-                          <span>Last Order</span>
-                        </div>
-                        <p className="text-sm font-medium text-foreground">
-                          {lastOrderDate}
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">Orders</p>
+                        <p className="text-sm font-semibold text-foreground">
+                          {customer.orders_count}
                         </p>
                       </div>
                       
-                      <div>
-                        <div className="text-xs text-muted-foreground mb-0.5">
-                          Orders
-                        </div>
-                        <p className="text-2xl font-bold text-foreground">
-                          {customer.orders_count}
+                      <div className="text-right min-w-[80px]">
+                        <p className="text-xs text-muted-foreground">Last Order</p>
+                        <p className="text-xs font-medium text-foreground">
+                          {lastOrderDate}
                         </p>
                       </div>
                     </div>
