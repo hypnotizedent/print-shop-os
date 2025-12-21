@@ -174,9 +174,17 @@ interface LineItemsTableProps {
   onImageClick?: (images: Array<{ url: string; name: string; id: string }>, index: number) => void;
 }
 
+interface EditingCell {
+  itemId: string;
+  field: string;
+  value: string | number;
+}
+
 function LineItemsTable({ items, onImageClick }: LineItemsTableProps) {
   const [columnConfig, setColumnConfig] = useKV<ColumnConfig>('order-column-config', DEFAULT_COLUMN_CONFIG);
   const currentColumnConfig = columnConfig || DEFAULT_COLUMN_CONFIG;
+  const [editingCell, setEditingCell] = useState<EditingCell | null>(null);
+  const [editedItems, setEditedItems] = useState<Record<string, Partial<OrderDetailLineItem>>>({}); 
   
   const sizeColumns = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', '6XL'] as const;
   const visibleSizeColumns = sizeColumns.filter(size => 
@@ -196,6 +204,101 @@ function LineItemsTable({ items, onImageClick }: LineItemsTableProps) {
       '5XL': sizes.xxxxxl || 0,
       '6XL': 0,
     };
+  };
+
+  const getItemValue = (item: OrderDetailLineItem, field: string): string | number => {
+    const edited = editedItems[item.id];
+    if (edited && field in edited) {
+      const val = edited[field as keyof typeof edited];
+      return val !== undefined && val !== null ? val as (string | number) : '';
+    }
+    
+    if (field === 'styleNumber') return item.styleNumber || '';
+    if (field === 'color') return item.color || '';
+    if (field === 'description') return item.description || '';
+    if (field === 'unitCost') return item.unitCost;
+    if (field.startsWith('size-')) {
+      const size = field.replace('size-', '');
+      const sizes = mapSizesToDisplay(item.sizes);
+      return sizes[size as keyof typeof sizes] || 0;
+    }
+    return '';
+  };
+
+  const handleCellClick = (itemId: string, field: string, value: string | number) => {
+    setEditingCell({ itemId, field, value });
+  };
+
+  const handleCellChange = (value: string) => {
+    if (!editingCell) return;
+    
+    setEditedItems((prev) => ({
+      ...prev,
+      [editingCell.itemId]: {
+        ...prev[editingCell.itemId],
+        [editingCell.field]: editingCell.field === 'unitCost' || editingCell.field.startsWith('size-')
+          ? parseFloat(value) || 0
+          : value,
+      },
+    }));
+    
+    setEditingCell({ ...editingCell, value });
+  };
+
+  const handleCellBlur = () => {
+    if (editingCell) {
+      toast.success('Cell updated');
+      setEditingCell(null);
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleCellBlur();
+    } else if (e.key === 'Escape') {
+      setEditingCell(null);
+    }
+  };
+
+  const renderEditableCell = (item: OrderDetailLineItem, field: string, align: 'left' | 'center' | 'right' = 'left') => {
+    const value = getItemValue(item, field);
+    const isEditing = editingCell?.itemId === item.id && editingCell?.field === field;
+    const isEmpty = value === '' || value === null || (typeof value === 'number' && value === 0);
+    const displayValue = field === 'unitCost' ? formatCurrency(Number(value)) : (isEmpty ? '-' : String(value));
+    
+    const alignmentClass = align === 'center' ? 'text-center' : align === 'right' ? 'text-right' : 'text-left';
+    const paddingClass = field.startsWith('size-') ? 'px-2' : 'px-3';
+    
+    return (
+      <td 
+        className={`${paddingClass} py-1.5 align-top cursor-pointer hover:bg-primary/5 transition-colors group relative ${alignmentClass}`}
+        onClick={() => !isEditing && handleCellClick(item.id, field, value)}
+      >
+        {isEditing ? (
+          <Input
+            autoFocus
+            type={field === 'unitCost' || field.startsWith('size-') ? 'number' : 'text'}
+            value={String(editingCell.value)}
+            onChange={(e) => handleCellChange(e.target.value)}
+            onBlur={handleCellBlur}
+            onKeyDown={handleKeyDown}
+            className={`h-7 text-xs ${alignmentClass} py-0 px-2 border-primary focus-visible:ring-1`}
+            step={field === 'unitCost' ? '0.01' : '1'}
+            min={field.startsWith('size-') ? '0' : undefined}
+          />
+        ) : (
+          <div className="flex items-center gap-1 h-7 py-1">
+            <span className={`flex-1 ${field.startsWith('size-') && typeof value === 'number' && value === 0 ? 'text-muted-foreground/30' : 'text-foreground'} ${field.startsWith('size-') && typeof value === 'number' && value > 0 ? 'font-medium' : ''}`}>
+              {displayValue}
+            </span>
+            <PencilSimple 
+              className="w-3 h-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" 
+              weight="bold" 
+            />
+          </div>
+        )}
+      </td>
+    );
   };
 
   return (
@@ -244,64 +347,52 @@ function LineItemsTable({ items, onImageClick }: LineItemsTableProps) {
           <tbody>
             {items.map((item, idx) => {
               const sizes = mapSizesToDisplay(item.sizes);
-              const totalQty = Object.values(sizes).reduce((sum, qty) => sum + qty, 0);
+              const editedSizes = editedItems[item.id] || {};
+              const currentSizes = { ...sizes, ...editedSizes };
+              
+              const totalQty = visibleSizeColumns.reduce((sum, size) => {
+                const sizeKey = `size-${size}`;
+                const qty = sizeKey in editedSizes ? Number(editedSizes[sizeKey as keyof typeof editedSizes] || 0) : sizes[size];
+                return sum + qty;
+              }, 0);
+              
+              const unitCost = getItemValue(item, 'unitCost');
+              const totalCost = totalQty * Number(unitCost);
               
               return (
-                <tr key={item.id} className="border-b border-border last:border-b-0 hover:bg-muted/20 transition-colors">
-                  {currentColumnConfig.itemNumber && (
-                    <td className="px-3 py-3 align-top">
-                      <span className="text-foreground font-medium">
-                        {item.styleNumber || '-'}
-                      </span>
-                    </td>
-                  )}
-                  {currentColumnConfig.color && (
-                    <td className="px-3 py-3 align-top">
-                      <span className="text-foreground">
-                        {item.color || '-'}
-                      </span>
-                    </td>
-                  )}
-                  <td className="px-3 py-3 align-top">
-                    <span className="text-foreground">
-                      {item.description || item.styleNumber || '-'}
-                    </span>
-                  </td>
-                  {visibleSizeColumns.map(size => (
-                    <td key={size} className="px-2 py-3 text-center align-top">
-                      {sizes[size] > 0 ? (
-                        <span className="text-foreground font-medium">
-                          {sizes[size]}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground/30">-</span>
-                      )}
-                    </td>
-                  ))}
+                <tr key={item.id} className="border-b border-border last:border-b-0 hover:bg-muted/10 transition-colors">
+                  {currentColumnConfig.itemNumber && renderEditableCell(item, 'styleNumber', 'left')}
+                  {currentColumnConfig.color && renderEditableCell(item, 'color', 'left')}
+                  {renderEditableCell(item, 'description', 'left')}
+                  {visibleSizeColumns.map(size => renderEditableCell(item, `size-${size}`, 'center'))}
                   {currentColumnConfig.quantity && (
-                    <td className="px-3 py-3 text-center align-top">
-                      <span className="text-foreground font-medium">
-                        {totalQty}
-                      </span>
+                    <td className="px-3 py-1.5 text-center align-top">
+                      <div className="h-7 flex items-center justify-center">
+                        <span className="text-foreground font-medium">
+                          {totalQty}
+                        </span>
+                      </div>
                     </td>
                   )}
-                  <td className="px-3 py-3 text-center align-top">
-                    <span className="text-foreground font-medium">
-                      {item.totalQuantity}
-                    </span>
+                  <td className="px-3 py-1.5 text-center align-top">
+                    <div className="h-7 flex items-center justify-center">
+                      <span className="text-foreground font-medium">
+                        {item.totalQuantity}
+                      </span>
+                    </div>
                   </td>
-                  <td className="px-3 py-3 text-right align-top">
-                    <span className="text-foreground">
-                      {formatCurrency(item.unitCost)}
-                    </span>
+                  {renderEditableCell(item, 'unitCost', 'right')}
+                  <td className="px-3 py-1.5 text-center align-top">
+                    <div className="h-7 flex items-center justify-center">
+                      <Check className="w-4 h-4 text-foreground" weight="bold" />
+                    </div>
                   </td>
-                  <td className="px-3 py-3 text-center align-top">
-                    <Check className="w-4 h-4 mx-auto text-foreground" weight="bold" />
-                  </td>
-                  <td className="px-3 py-3 text-right align-top">
-                    <span className="text-foreground font-medium">
-                      {formatCurrency(item.totalCost)}
-                    </span>
+                  <td className="px-3 py-1.5 text-right align-top">
+                    <div className="h-7 flex items-center justify-end">
+                      <span className="text-foreground font-medium">
+                        {formatCurrency(totalCost)}
+                      </span>
+                    </div>
                   </td>
                 </tr>
               );
