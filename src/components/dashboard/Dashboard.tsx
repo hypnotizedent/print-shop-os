@@ -69,7 +69,7 @@ export function Dashboard({ orders, customers, onViewOrder }: DashboardProps) {
 
       <Card className="bg-card/50 border-border/50">
         <CardContent className="p-2">
-          <div className="flex items-center justify-between mb-1 py-1">
+          <div className="flex items-center justify-between mb-1">
             <div>
               <h2 className="text-base font-semibold">All Active Jobs</h2>
               <p className="text-xs text-muted-foreground">
@@ -116,8 +116,7 @@ export function Dashboard({ orders, customers, onViewOrder }: DashboardProps) {
                           <div className="flex items-center gap-1">
                             <CalendarBlank className="w-3 h-3" />
                             <span>
-                              {isOverdue ? 'Overdue' : `Overdue`} {formatDate(order.due_date)} (
-                              {isOverdue ? `${Math.abs(daysUntilDue)}d` : `${daysUntilDue}d`})
+                              Due {formatDate(order.due_date)} ({isOverdue ? `${Math.abs(daysUntilDue)}d overdue` : `${daysUntilDue}d`})
                             </span>
                           </div>
                           <span>$ {formatCurrency(order.total)}</span>
