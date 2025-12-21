@@ -216,6 +216,8 @@ export interface LineItemImprint {
 
 export interface OrderDetailLineItem {
   id: number
+  groupId: string | null
+  groupName: string | null
   styleNumber: string | null
   description: string | null
   color: string | null
@@ -335,6 +337,8 @@ export function useOrderDetail(visualId: string | null) {
         })),
         lineItems: (data.lineItems || data.line_items || []).map((li: any) => ({
           id: li.id,
+          groupId: li.groupId || li.group_id || null,
+          groupName: li.groupName || li.group_name || null,
           styleNumber: li.styleNumber || li.style_number || null,
           description: li.description || li.style_description || null,
           color: li.color || null,
@@ -348,10 +352,10 @@ export function useOrderDetail(visualId: string | null) {
             m: li.sizes?.m || li.size_m || 0,
             l: li.sizes?.l || li.size_l || 0,
             xl: li.sizes?.xl || li.size_xl || 0,
-            xxl: li.sizes?.xxl || li.size_2_xl || 0,
-            xxxl: li.sizes?.xxxl || li.size_3_xl || 0,
-            xxxxl: li.sizes?.xxxxl || li.size_4_xl || 0,
-            xxxxxl: li.sizes?.xxxxxl || li.size_5_xl || 0,
+            xxl: li.sizes?.xxl || li.size_2_xl || li.sizes?.['2xl'] || 0,
+            xxxl: li.sizes?.xxxl || li.size_3_xl || li.sizes?.['3xl'] || 0,
+            xxxxl: li.sizes?.xxxxl || li.size_4_xl || li.sizes?.['4xl'] || 0,
+            xxxxxl: li.sizes?.xxxxxl || li.size_5_xl || li.sizes?.['5xl'] || 0,
             other: li.sizes?.other || li.size_other || 0,
           },
           mockup: li.mockup ? {
