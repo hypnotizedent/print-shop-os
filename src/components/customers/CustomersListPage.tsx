@@ -153,7 +153,7 @@ export function CustomersListPage({ onViewCustomer }: CustomersListPageProps) {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-1.5">
+        <div className="space-y-0.5">
           {customers.map((customer) => {
             const lastOrderDate = customer.last_order_date 
               ? formatDistanceToNow(new Date(customer.last_order_date), { addSuffix: true })
