@@ -594,15 +594,29 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
   const [editedItems, setEditedItems] = useState<Record<string, Partial<OrderDetailLineItem>>>({}); 
   const [editedImprints, setEditedImprints] = useState<Record<number, Partial<LineItemImprint>>>({}); 
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set(items.map(i => i.id)));
-  
+
+  // Auto-expand items when they load/change (to show imprints by default)
+  useEffect(() => {
+    if (items.length > 0) {
+      setExpandedItems(new Set(items.map(i => i.id)));
+    }
+  }, [items]);
+
   // Debug logging
   useEffect(() => {
     console.log('LineItemsTable - Items:', items);
     console.log('LineItemsTable - Items with imprints:', items.filter(i => i.imprints && i.imprints.length > 0));
     console.log('LineItemsTable - Items with mockups:', items.filter(i => i.mockup));
     console.log('LineItemsTable - Expanded items:', Array.from(expandedItems));
-    console.log('LineItemsTable - Column config:', currentColumnConfig);
-  }, [items, expandedItems, currentColumnConfig]);
+    // Log imprint mockups specifically
+    items.forEach(item => {
+      if (item.imprints && item.imprints.length > 0) {
+        item.imprints.forEach(imp => {
+          console.log(`🖼️ UI - Imprint ${imp.id} mockups:`, imp.mockups);
+        });
+      }
+    });
+  }, [items, expandedItems]);
   
   const sizeColumns = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', '6XL'] as const;
   const visibleSizeColumns = sizeColumns.filter(size => 
