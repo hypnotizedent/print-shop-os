@@ -1,11 +1,7 @@
 import { Order, Customer } from '@/lib/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-  Briefcase,
-  CalendarBlank
-} from '@phosphor-icons/react';
+import { Briefcase } from '@phosphor-icons/react';
 import { formatCurrency } from '@/lib/helpers';
 
 interface DashboardProps {
@@ -16,26 +12,16 @@ interface DashboardProps {
 }
 
 export function Dashboard({ orders, customers, onViewOrder, onNavigateToOrders }: DashboardProps) {
-  const activeJobs = orders.filter(o => 
+  const activeJobs = orders.filter(o =>
     o.status !== 'COMPLETE' && o.status !== 'QUOTE'
   );
 
-  const followUpNeeded = orders.filter(o => o.status === 'QUOTE');
-
-  const productionOrders = orders.filter(o => 
-    o.status === 'IN PRODUCTION'
-  );
-
-  const totalInProduction = productionOrders.reduce((sum, o) => sum + o.total, 0);
-
-  const now = new Date();
-  const dateOptions: Intl.DateTimeFormatOptions = { 
-    weekday: 'long', 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  };
-  const formattedDate = now.toLocaleDateString('en-US', dateOptions);
+  const formattedDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
 
   return (
     <div className="space-y-2">
@@ -70,10 +56,10 @@ export function Dashboard({ orders, customers, onViewOrder, onNavigateToOrders }
       <Card className="bg-card/50 border-border/50">
         <CardContent className="px-4 py-2">
           <div className="flex items-center justify-between mb-2">
-            <Badge 
+            <Badge
               variant="secondary"
               onClick={onNavigateToOrders}
-              className="text-xs font-medium px-1.5 py-0 cursor-pointer hover:bg-secondary/80 transition-colors border border-border/40"
+              className="text-xs font-medium px-2 py-0.5 cursor-pointer hover:bg-secondary/80 transition-colors border border-border"
             >
               All Orders
             </Badge>
@@ -87,10 +73,13 @@ export function Dashboard({ orders, customers, onViewOrder, onNavigateToOrders }
           ) : (
             <div className="space-y-1.5">
               {activeJobs.slice(0, 10).map((order) => {
-                const dueDate = new Date(order.due_date);
-                const isOverdue = dueDate < now;
-                const daysUntilDue = Math.ceil((dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-                
+                // Calculate total pieces from line items
+                const totalPieces = order.line_items?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+
+                // Safe date handling
+                const displayDate = order.due_date;
+                const hasValidDate = displayDate && displayDate !== '' && !isNaN(new Date(displayDate).getTime());
+
                 return (
                   <div
                     key={order.id}
@@ -98,31 +87,32 @@ export function Dashboard({ orders, customers, onViewOrder, onNavigateToOrders }
                     className="bg-card/80 rounded-lg p-3 border border-border/50 hover:border-border hover:bg-card transition-colors cursor-pointer"
                   >
                     <div className="flex items-center justify-between">
-                      <div>
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
                           <h3 className="text-sm">
                             <span className="font-bold">#{order.visual_id}</span>
                             {order.nickname && <span className="font-bold"> · {order.nickname}</span>}
                           </h3>
                         </div>
-                        <p className="text-xs text-muted-foreground">{order.customer_name}</p>
-                        {order.customer_company && order.customer_company !== order.customer_name && (
-                          <p className="text-xs text-muted-foreground/70">{order.customer_company}</p>
-                        )}
-                        <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                          <div className="flex items-center gap-1">
-                            <CalendarBlank className="w-3 h-3" />
-                            <span>
-                              Due {formatDate(order.due_date)} ({isOverdue ? `${Math.abs(daysUntilDue)}d overdue` : `${daysUntilDue}d`})
-                            </span>
-                          </div>
-                          <span>$ {formatCurrency(order.total)}</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs font-medium text-muted-foreground">
-                          {order.line_items_count ?? order.line_items?.length ?? 0} items
+                        <p className="text-xs text-muted-foreground">
+                          {order.customer_name}
+                          {order.customer_company && order.customer_company !== order.customer_name && (
+                            <span className="text-muted-foreground/60"> ({order.customer_company})</span>
+                          )}
                         </p>
+                        {hasValidDate && (
+                          <p className="text-xs text-muted-foreground/70 mt-0.5">
+                            Due {formatDate(displayDate)}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground">
+                          {totalPieces} pcs
+                        </span>
+                        <span className="text-sm font-medium">
+                          {formatCurrency(order.total)}
+                        </span>
                       </div>
                     </div>
                   </div>

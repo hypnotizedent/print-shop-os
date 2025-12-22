@@ -159,3 +159,103 @@
 4. decorationType → method enum mapping
 5. custom_created_at → created_at
 6. total_amount → total (alias)
+
+---
+
+## Mockups Investigation
+
+> Audited: December 22, 2025
+
+### API Returns
+
+**Orders List (`/api/orders`):**
+```json
+{
+  "line_items": [{
+    "id": 125364,
+    "mockups": null  // Always null in list endpoint
+  }]
+}
+```
+
+**Order Detail (`/api/orders/:id`):**
+```json
+{
+  "mockups": null,  // Order-level always null
+  "lineItems": [{
+    "id": 110735,
+    "mockup": {      // SINGULAR object, not array
+      "id": "5907",
+      "url": "https://files.ronny.works/artwork/UiejzQuORL258qaRhUOZ.png",
+      "thumbnailUrl": "https://files.ronny.works/artwork/UiejzQuORL258qaRhUOZ.png"
+    }
+  }]
+}
+```
+
+### Frontend Expects
+
+**LineItem type (`types.ts`):**
+```typescript
+interface LineItem {
+  mockups: Mockup[];  // ARRAY of mockups
+}
+
+interface Mockup {
+  url: string;
+  thumbnailUrl: string;
+}
+```
+
+**OrderDetailPage.tsx usage:**
+```typescript
+// Expects item.mockup with {id, url, thumbnail_url, name}
+{item.mockup ? (
+  <img src={item.mockup.thumbnail_url || item.mockup.url} />
+)}
+```
+
+### Current Adapter Handling
+
+**api-adapter.ts:**
+```typescript
+// For detail API - wraps single mockup in array ✅
+const mockups: Mockup[] = apiLineItem.mockup
+  ? [{ url: apiLineItem.mockup, thumbnailUrl: apiLineItem.mockup }]
+  : []
+
+// For list API - expects array but API returns null
+mockups: (apiLineItem.mockups || []).map(transformMockup)
+```
+
+### Gap Identified
+
+| Location | Issue | Status |
+|----------|-------|--------|
+| Order-level mockups | Always `null` | ⚠️ Not used by UI |
+| LineItem.mockup (detail) | Single object, adapter wraps in array | ✅ Handled |
+| LineItem.mockups (list) | Always `null`, no mockups in list endpoint | ❌ API GAP |
+| Imprint.mockups | Not in API, frontend expects array | ❌ API GAP |
+
+### PDF Handling
+
+**Frontend has PDF detection:**
+```typescript
+// api-adapter.ts
+export function isPDF(url: string): boolean {
+  return url?.toLowerCase().endsWith('.pdf') || false
+}
+
+// OrderDetailPage.tsx
+const aIsPdf = a.url?.toLowerCase().endsWith('.pdf');
+// PDFs sorted to end of mockup list
+```
+
+**File uploads accept:** `image/*,.pdf,.ai,.eps,.svg`
+
+### Recommendations (No Changes Yet)
+
+1. **List API** - Consider adding mockup JOIN to orders list for thumbnail preview
+2. **Imprint mockups** - Mockups are attached to LineItems, not Imprints in DB schema
+3. **PDF thumbnails** - Currently just shows PDF icon, no actual thumbnail generation
+4. **Order-level mockups** - Remove from type/UI since never populated
