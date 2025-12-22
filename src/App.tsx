@@ -215,7 +215,7 @@ function App() {
               <circle cx="26" cy="6" r="1" fill="#10B981"/>
             </svg>
             <span className="font-bold text-lg tracking-wide">MINT PRINTS</span>
-            <span className="text-[8px] text-muted-foreground ml-1">v2</span>
+            <span className="text-[8px] text-muted-foreground ml-1">v2.1</span>
           </div>
         </div>
         
