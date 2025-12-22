@@ -10,7 +10,10 @@ import {
   CaretLeft,
   CaretRight,
   ArrowClockwise,
-  Warning
+  Warning,
+  Buildings,
+  EnvelopeSimple,
+  Phone
 } from '@phosphor-icons/react';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -160,47 +163,60 @@ export function CustomersListPage({ onViewCustomer }: CustomersListPageProps) {
               : 'Never';
 
             return (
-              <Card 
+              <Card
                 key={customer.id}
                 onClick={() => onViewCustomer(String(customer.id))}
                 className="bg-card/50 hover:bg-card/80 border-border/50 cursor-pointer transition-all hover:border-border overflow-hidden group"
               >
-                <CardContent className="px-2 py-0.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 flex-1 min-w-0">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="text-sm font-medium text-foreground truncate">
-                            {customer.name}
-                          </h3>
-                          <Badge className={`${getTierColor(customer.tier)} uppercase text-[10px] font-semibold px-1 py-0 h-3.5`}>
-                            {customer.tier}
-                          </Badge>
-                        </div>
+                <CardContent className="px-3 py-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <h3 className="text-sm font-semibold text-foreground truncate">
+                          {customer.name}
+                        </h3>
+                        <Badge className={`${getTierColor(customer.tier)} uppercase text-[10px] font-semibold px-1 py-0 h-3.5`}>
+                          {customer.tier}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
                         {customer.company && (
-                          <p className="text-xs text-muted-foreground truncate mt-0">
-                            {customer.company}
-                          </p>
+                          <span className="flex items-center gap-1">
+                            <Buildings size={12} />
+                            <span className="truncate max-w-[150px]">{customer.company}</span>
+                          </span>
+                        )}
+                        {customer.email && (
+                          <span className="flex items-center gap-1">
+                            <EnvelopeSimple size={12} />
+                            <span className="truncate max-w-[180px]">{customer.email}</span>
+                          </span>
+                        )}
+                        {customer.phone && (
+                          <span className="flex items-center gap-1">
+                            <Phone size={12} />
+                            <span>{customer.phone}</span>
+                          </span>
                         )}
                       </div>
                     </div>
-                    
-                    <div className="flex items-center gap-3 flex-shrink-0">
+
+                    <div className="flex items-center gap-4 flex-shrink-0">
                       <div className="text-right">
                         <p className="text-[10px] text-muted-foreground leading-tight">Revenue</p>
                         <p className="text-xs font-semibold text-foreground leading-tight">
                           ${customer.total_revenue.toFixed(2)}
                         </p>
                       </div>
-                      
+
                       <div className="text-right">
                         <p className="text-[10px] text-muted-foreground leading-tight">Orders</p>
                         <p className="text-xs font-semibold text-foreground leading-tight">
                           {customer.orders_count}
                         </p>
                       </div>
-                      
-                      <div className="text-right min-w-[80px]">
+
+                      <div className="text-right min-w-[70px]">
                         <p className="text-[10px] text-muted-foreground leading-tight">Last Order</p>
                         <p className="text-xs font-medium text-foreground leading-tight">
                           {lastOrderDate}
