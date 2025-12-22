@@ -71,13 +71,48 @@ Wire this Spark UI to the live Mint OS API so the dashboard displays real produc
 
 ---
 
+## 🔌 UI WIRING GAPS (Audited Dec 22, 2025)
+
+**Full audit:** `docs/AUDIT_UI_WIRING_GAPS.md`
+
+### Critical (Blocking Daily Use)
+| Feature | File | Handler | Line |
+|---------|------|---------|------|
+| Line item save | OrderDetailPage.tsx | `handleSave` | 1748 |
+| Line item delete | OrderDetailPage.tsx | `handleDelete` | 1738 |
+| Add line item | OrderDetailPage.tsx | `handleAddLineItem` | 1135 |
+| Status change | OrderDetailPage.tsx | *missing* | - |
+| Customer save | CustomerDetailPage.tsx | `handleSaveContact` | 164 |
+
+### Important (Needed Soon)
+| Feature | File | Handler | Line |
+|---------|------|---------|------|
+| Imprint save | OrderDetailPage.tsx | `handleSave` | 1532 |
+| Imprint delete | OrderDetailPage.tsx | `handleDelete` | 1542 |
+| Mockup upload | OrderDetailPage.tsx | `handleMockupUpload` | 1546 |
+| Address save | CustomerDetailPage.tsx | `handleSaveAddress` | 182 |
+
+### API Endpoints Needed (create in ronny-ops)
+```
+PATCH /api/orders/:id/status          # Change order status
+POST  /api/orders/:id/line-items      # Add line item
+PUT   /api/orders/:id/line-items/:id  # Update line item
+DELETE /api/orders/:id/line-items/:id # Remove line item
+POST  /api/orders/:id/artwork         # Upload artwork
+PUT   /api/customers/:id              # Update customer
+POST  /api/customers                  # Create customer
+```
+
+---
+
 ## 📚 Documentation Index
 
 | Doc | Purpose |
 |-----|---------|
+| docs/AUDIT_UI_WIRING_GAPS.md | **UI elements needing API wiring** |
+| docs/AUDIT_ORDER_DETAIL_FEATURES.md | Feature audit & mockup investigation |
 | docs/ROADMAP_v2x_WIRE_APIS.md | Version roadmap |
 | docs/PLAN_UNIFIED_DETAIL_PAGE.md | Unified order/quote detail page |
-| docs/AUDIT_ORDER_DETAIL_FEATURES.md | Feature audit & mockup investigation |
 | docs/PORT_QUOTE_BUILDER.md | Quote Builder porting plan |
 | docs/DISCOVERY_QUOTE_BUILDER_UI.md | PrintShopPro analysis |
 | docs/PLAN_ORDER_DETAIL_v220.md | Order detail improvements |
