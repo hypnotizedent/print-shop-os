@@ -5,24 +5,70 @@ Wire this Spark UI to the live Mint OS API so the dashboard displays real produc
 
 ---
 
-## 🎯 CURRENT PRIORITIES (Updated: Dec 22, 2025)
+## 🎯 HIGH PRIORITY - v2.2.0 Quote System (December 2025)
 
-### ⏳ WAITING ON API FIXES
-Do NOT proceed with UI wiring until ronny-ops completes Tier 1:
-- line_items JOIN fix
-- customer fields fix
-- customer aggregates
+### Goal: Create new quotes/orders in Mint OS (replace Printavo)
 
-### After API Ready:
-- [ ] Update api-adapter.ts with new fields
-- [ ] Wire customer_company to order cards
-- [ ] Wire customer aggregates to customer list
-- [ ] Test all views with real data
+**Phase 1 - Core Quote Builder (Day 1-2)**
+- [ ] Add "Quotes" to sidebar navigation
+- [ ] Create /quotes route → QuotesList page
+- [ ] Create /quotes/new route → QuoteBuilder page
+- [ ] Wire "New Order" button → navigate to /quotes/new
+- [ ] Port QuoteBuilder.tsx from PrintShopPro (633 lines)
+- [ ] Port CustomerSearch.tsx (172 lines)
+- [ ] Wire to real API: GET/POST /api/v2/quotes
 
-### Reference Docs
-- docs/API_GAP_ANALYSIS.md - What UI needs vs what API returns
-- docs/API_FIX_PRIORITIES.md - Prioritized fix list
-- docs/AUDIT_UI_DATA_FIELDS.md - All 70 fields analyzed
+**Phase 2 - Line Items (Day 2)**
+- [ ] Port LineItemGrid.tsx (1,161 lines) or create simplified version
+- [ ] Wire to: POST/PUT/DELETE /api/v2/quotes/:id/line-items
+- [ ] Port PricingSummary.tsx (115 lines)
+- [ ] Auto-calculate totals on changes
+
+**Phase 3 - Convert to Order (Day 2-3)**
+- [ ] Add "Convert to Order" button
+- [ ] Wire to: POST /api/v2/quotes/:id/convert
+- [ ] Navigate to new order after conversion
+- [ ] Success notification
+
+**API Endpoints (To Build)**
+```
+GET    /api/v2/quotes
+POST   /api/v2/quotes
+GET    /api/v2/quotes/:id
+PUT    /api/v2/quotes/:id
+POST   /api/v2/quotes/:id/line-items
+POST   /api/v2/quotes/:id/convert
+```
+
+**Reference Docs**
+- docs/ROADMAP_v2x_WIRE_APIS.md - Version plan
+- docs/PORT_QUOTE_BUILDER.md - Porting checklist
+- docs/DISCOVERY_QUOTE_BUILDER_UI.md - PrintShopPro analysis
+
+### Blocked Until API Ready
+- [ ] Customer create (POST /api/customers) - ronny-ops building
+- [ ] Customer edit (PUT /api/customers/:id) - ronny-ops building
+
+### After v2.2.0: Quick Wins
+| Feature | Effort | Impact |
+|---------|--------|--------|
+| Reports Dashboard | 1 day | Business insights |
+| Record Payment button | 2 hours | Daily workflow |
+| Shipping labels | 1-2 days | Fulfillment |
+
+---
+
+## 📚 Documentation Index
+
+| Doc | Purpose |
+|-----|---------|
+| docs/ROADMAP_v2x_WIRE_APIS.md | Version roadmap |
+| docs/PORT_QUOTE_BUILDER.md | Quote Builder porting plan |
+| docs/DISCOVERY_QUOTE_BUILDER_UI.md | PrintShopPro analysis |
+| docs/PLAN_ORDER_DETAIL_v220.md | Order detail improvements |
+| docs/DIAG_ORDER_DETAIL_PAGE.md | Order detail audit |
+| docs/DIAG_PRINTSHOPPRO_COMPARISON.md | UI comparison |
+| docs/DIAG_CUSTOMER_CARD_v214.md | Customer card audit |
 
 ---
 
