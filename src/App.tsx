@@ -66,14 +66,14 @@ function App() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState('');
-  
-  console.log('App loaded - Spark UI v2.2.4', { 
-    ordersCount: apiOrders?.length || 0, 
+
+  console.log('App loaded - Spark UI v2.2.5', {
+    ordersCount: apiOrders?.length || 0,
     customersCount: apiCustomers?.length || 0,
     ordersError,
-    customersError 
+    customersError
   });
-  
+
   // Show loading state while data is being fetched
   if (ordersLoading || customersLoading) {
     return (
@@ -299,7 +299,7 @@ function App() {
               <circle cx="26" cy="6" r="1" fill="#10B981"/>
             </svg>
             <span className="font-bold text-lg tracking-wide">MINT PRINTS</span>
-            <span className="text-[8px] text-muted-foreground ml-1">v2.2.4</span>
+            <span className="text-[8px] text-muted-foreground ml-1">v2.2.5</span>
           </div>
         </div>
         

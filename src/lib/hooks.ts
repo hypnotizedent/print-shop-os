@@ -397,71 +397,13 @@ export function useOrderDetail(visualId: string | null) {
             };
           });
 
-          // ADD MOCK IMPRINT DATA FOR TESTING (if no imprints exist)
-          if (imprints.length === 0) {
-            console.log('⚠️ No imprints in API data, adding mock imprint for testing');
-            imprints = [
-              {
-                id: 99999,
-                location: 'Front',
-                decorationType: 'Screen Print',
-                description: 'Logo design with company branding',
-                colorCount: 2,
-                colors: 'Black, White',
-                width: 8.5,
-                height: 11,
-                hasUnderbase: false,
-                stitchCount: null,
-                mockups: [
-                  {
-                    id: 'mock-1',
-                    url: 'https://via.placeholder.com/400x400/10B981/FFFFFF?text=Front+Logo',
-                    name: 'Front Logo Mockup',
-                    thumbnail_url: 'https://via.placeholder.com/100x100/10B981/FFFFFF?text=Logo',
-                  },
-                  {
-                    id: 'mock-2',
-                    url: 'https://via.placeholder.com/400x400/3B82F6/FFFFFF?text=Alt+View',
-                    name: 'Alternative View',
-                    thumbnail_url: 'https://via.placeholder.com/100x100/3B82F6/FFFFFF?text=Alt',
-                  }
-                ],
-              },
-              {
-                id: 99998,
-                location: 'Back',
-                decorationType: 'Screen Print',
-                description: 'Text and design on back',
-                colorCount: 1,
-                colors: 'Black',
-                width: 12,
-                height: 14,
-                hasUnderbase: false,
-                stitchCount: null,
-                mockups: [
-                  {
-                    id: 'mock-3',
-                    url: 'https://via.placeholder.com/400x400/EF4444/FFFFFF?text=Back+Design',
-                    name: 'Back Design Mockup',
-                    thumbnail_url: 'https://via.placeholder.com/100x100/EF4444/FFFFFF?text=Back',
-                  }
-                ],
-              }
-            ];
-          }
-
-          // Add mock mockup if none exists
+          // Return null mockup if none exists (no fake data)
           const mockup = li.mockup ? {
             id: li.mockup.id,
             url: li.mockup.url,
             name: li.mockup.name,
             thumbnail_url: li.mockup.thumbnail_url || li.mockup.thumbnailUrl || null,
-          } : {
-            id: 'mock-lineitem',
-            url: 'https://via.placeholder.com/400x400/8B5CF6/FFFFFF?text=Line+Item',
-            name: 'Line Item Mockup',
-            thumbnail_url: 'https://via.placeholder.com/100x100/8B5CF6/FFFFFF?text=Item',
-          };
+          } : null;
 
           return {
             id: li.id,

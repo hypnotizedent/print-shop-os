@@ -619,9 +619,19 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
   }, [items, expandedItems]);
   
   const sizeColumns = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', '6XL'] as const;
-  const visibleSizeColumns = sizeColumns.filter(size => 
-    currentColumnConfig.sizes.adult[size as keyof typeof currentColumnConfig.sizes.adult]
-  );
+
+  // Check if any line item has any size value > 0
+  const hasSizeBreakdown = items.some(item => {
+    const sizes = mapSizesToDisplay(item.sizes);
+    return Object.values(sizes).some(qty => qty > 0);
+  });
+
+  // Only show size columns if there's a size breakdown, otherwise collapse to just "Qty"
+  const visibleSizeColumns = hasSizeBreakdown
+    ? sizeColumns.filter(size =>
+        currentColumnConfig.sizes.adult[size as keyof typeof currentColumnConfig.sizes.adult]
+      )
+    : [];
   
   const toggleExpanded = (itemId: number) => {
     setExpandedItems((prev) => {
@@ -943,22 +953,20 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
                   <tr key={item.id} className={`border-b border-border hover:bg-muted/10 transition-colors ${isInGroup ? 'bg-muted/5' : ''}`}>
                     <td className="px-3 py-1.5 align-top">
                       <div className="h-7 flex items-center">
-                        {hasImprints && (
-                          <button
-                            onClick={() => toggleExpanded(item.id)}
-                            className="p-0.5 hover:bg-muted rounded transition-colors"
-                            title={isExpanded ? 'Collapse imprints' : 'Expand imprints'}
+                        <button
+                          onClick={() => toggleExpanded(item.id)}
+                          className="p-0.5 hover:bg-muted rounded transition-colors"
+                          title={isExpanded ? 'Collapse' : 'Expand'}
+                        >
+                          <svg
+                            className={`w-3.5 h-3.5 transition-transform ${hasImprints ? 'text-muted-foreground' : 'text-muted-foreground/30'} ${isExpanded ? 'rotate-90' : ''}`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
                           >
-                            <svg
-                              className={`w-3.5 h-3.5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                          </button>
-                        )}
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
                       </div>
                     </td>
                     {currentColumnConfig.itemNumber && renderEditableCell(item, 'styleNumber', 'left')}
@@ -1087,11 +1095,11 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
                           )}
                         </div>
                       </td>
-                      {renderEditableImprintCell(imprint, 'location', 'left', Math.max(2, Math.floor(visibleSizeColumns.length / 4)))}
-                      {renderEditableImprintCell(imprint, 'colors', 'left', Math.max(2, Math.floor(visibleSizeColumns.length / 4)))}
-                      <td 
-                        className="px-3 py-1.5 align-top" 
-                        colSpan={visibleSizeColumns.length - Math.floor(visibleSizeColumns.length / 3) * 2}
+                      {renderEditableImprintCell(imprint, 'location', 'left', Math.max(1, Math.floor(visibleSizeColumns.length / 4)))}
+                      {renderEditableImprintCell(imprint, 'colors', 'left', Math.max(1, Math.floor(visibleSizeColumns.length / 4)))}
+                      <td
+                        className="px-3 py-1.5 align-top"
+                        colSpan={Math.max(1, visibleSizeColumns.length - Math.floor(visibleSizeColumns.length / 3) * 2)}
                       >
                         <div className="h-7 flex items-center gap-1 text-xs text-muted-foreground">
                           {imprint.width && imprint.height && (
@@ -1103,6 +1111,36 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
                       <td colSpan={4}></td>
                     </tr>
                   ))}
+
+                  {/* No Imprints Empty State */}
+                  {isExpanded && !hasImprints && (
+                    <tr className="bg-muted/20 border-b border-border/50">
+                      <td className="px-3 py-1.5 align-top">
+                        <div className="h-7 flex items-center justify-center">
+                          <div className="w-1 h-4 bg-muted-foreground/20 rounded-full"></div>
+                        </div>
+                      </td>
+                      <td
+                        colSpan={100}
+                        className="px-3 py-3"
+                      >
+                        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                          <span>No imprints for this line item</span>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-6 text-xs gap-1 px-2"
+                            onClick={() => {
+                              toast.info('Add Imprint functionality coming soon');
+                            }}
+                          >
+                            <Plus size={12} weight="bold" />
+                            Add Imprint
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                 </>
               );
             })}
