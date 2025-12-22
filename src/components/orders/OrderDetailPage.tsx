@@ -618,7 +618,67 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
     });
   }, [items, expandedItems]);
   
-  const sizeColumns = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL', '4XL', '5XL', '6XL'] as const;
+  // All size columns organized by category with config mapping
+  const ALL_SIZE_COLUMNS = [
+    // Baby/Toddler
+    { key: '6m', label: '6M', category: 'baby' as const, configKey: '6M' },
+    { key: '12m', label: '12M', category: 'baby' as const, configKey: '12M' },
+    { key: '18m', label: '18M', category: 'baby' as const, configKey: '18M' },
+    { key: '24m', label: '24M', category: 'baby' as const, configKey: '24M' },
+    { key: '2t', label: '2T', category: 'baby' as const, configKey: '2T' },
+    { key: '3t', label: '3T', category: 'baby' as const, configKey: '3T' },
+    { key: '4t', label: '4T', category: 'baby' as const, configKey: '4T' },
+    { key: '5t', label: '5T', category: 'baby' as const, configKey: '5T' },
+    // Youth
+    { key: 'yxs', label: 'Y-XS', category: 'youth' as const, configKey: 'Youth-XS' },
+    { key: 'ys', label: 'Y-S', category: 'youth' as const, configKey: 'Youth-S' },
+    { key: 'ym', label: 'Y-M', category: 'youth' as const, configKey: 'Youth-M' },
+    { key: 'yl', label: 'Y-L', category: 'youth' as const, configKey: 'Youth-L' },
+    { key: 'yxl', label: 'Y-XL', category: 'youth' as const, configKey: 'Youth-XL' },
+    // Adult
+    { key: 'xs', label: 'XS', category: 'adult' as const, configKey: 'XS' },
+    { key: 's', label: 'S', category: 'adult' as const, configKey: 'S' },
+    { key: 'm', label: 'M', category: 'adult' as const, configKey: 'M' },
+    { key: 'l', label: 'L', category: 'adult' as const, configKey: 'L' },
+    { key: 'xl', label: 'XL', category: 'adult' as const, configKey: 'XL' },
+    { key: 'xxl', label: '2XL', category: 'adult' as const, configKey: '2XL' },
+    { key: 'xxxl', label: '3XL', category: 'adult' as const, configKey: '3XL' },
+    { key: 'xxxxl', label: '4XL', category: 'adult' as const, configKey: '4XL' },
+    { key: 'xxxxxl', label: '5XL', category: 'adult' as const, configKey: '5XL' },
+    { key: 'xxxxxx', label: '6XL', category: 'adult' as const, configKey: '6XL' },
+  ];
+
+  // Map all sizes from item to display format
+  const mapSizesToDisplay = (sizes: OrderDetailLineItem['sizes']): Record<string, number> => {
+    return {
+      // Baby/Toddler
+      '6M': sizes['6m'] || 0,
+      '12M': sizes['12m'] || 0,
+      '18M': sizes['18m'] || 0,
+      '24M': sizes['24m'] || 0,
+      '2T': sizes['2t'] || 0,
+      '3T': sizes['3t'] || 0,
+      '4T': sizes['4t'] || 0,
+      '5T': sizes['5t'] || 0,
+      // Youth
+      'Y-XS': sizes.yxs || 0,
+      'Y-S': sizes.ys || 0,
+      'Y-M': sizes.ym || 0,
+      'Y-L': sizes.yl || 0,
+      'Y-XL': sizes.yxl || 0,
+      // Adult
+      XS: sizes.xs || 0,
+      S: sizes.s || 0,
+      M: sizes.m || 0,
+      L: sizes.l || 0,
+      XL: sizes.xl || 0,
+      '2XL': sizes.xxl || 0,
+      '3XL': sizes.xxxl || 0,
+      '4XL': sizes.xxxxl || 0,
+      '5XL': sizes.xxxxxl || 0,
+      '6XL': sizes.xxxxxx || 0,
+    };
+  };
 
   // Check if any line item has any size value > 0
   const hasSizeBreakdown = items.some(item => {
@@ -626,12 +686,31 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
     return Object.values(sizes).some(qty => qty > 0);
   });
 
-  // Only show size columns if there's a size breakdown, otherwise collapse to just "Qty"
-  const visibleSizeColumns = hasSizeBreakdown
-    ? sizeColumns.filter(size =>
-        currentColumnConfig.sizes.adult[size as keyof typeof currentColumnConfig.sizes.adult]
-      )
-    : [];
+  // Get visible columns based on config + auto-show columns with data
+  const getVisibleSizeColumns = () => {
+    if (!hasSizeBreakdown) return [];
+
+    // Check which columns have data in any line item
+    const columnsWithData = new Set<string>();
+    items.forEach(item => {
+      const sizes = mapSizesToDisplay(item.sizes);
+      ALL_SIZE_COLUMNS.forEach(col => {
+        if (sizes[col.label] > 0) {
+          columnsWithData.add(col.key);
+        }
+      });
+    });
+
+    // Filter columns: show if enabled in config OR has data
+    return ALL_SIZE_COLUMNS.filter(col => {
+      const categoryConfig = currentColumnConfig.sizes[col.category];
+      const isEnabledInConfig = categoryConfig?.[col.configKey as keyof typeof categoryConfig];
+      const hasData = columnsWithData.has(col.key);
+      return isEnabledInConfig || hasData;
+    });
+  };
+
+  const visibleSizeColumns = getVisibleSizeColumns();
   
   const toggleExpanded = (itemId: number) => {
     setExpandedItems((prev) => {
@@ -643,21 +722,6 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
       }
       return next;
     });
-  };
-  
-  const mapSizesToDisplay = (sizes: OrderDetailLineItem['sizes']): Record<string, number> => {
-    return {
-      XS: sizes.xs || 0,
-      S: sizes.s || 0,
-      M: sizes.m || 0,
-      L: sizes.l || 0,
-      XL: sizes.xl || 0,
-      '2XL': sizes.xxl || 0,
-      '3XL': sizes.xxxl || 0,
-      '4XL': sizes.xxxxl || 0,
-      '5XL': sizes.xxxxxl || 0,
-      '6XL': 0,
-    };
   };
 
   const getItemValue = (item: OrderDetailLineItem, field: string): string | number => {
@@ -888,9 +952,9 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
               <th className="text-center px-3 py-2 font-medium text-muted-foreground whitespace-nowrap">
                 Mockup
               </th>
-              {visibleSizeColumns.map(size => (
-                <th key={size} className="text-center px-2 py-2 font-medium text-muted-foreground whitespace-nowrap">
-                  {size}
+              {visibleSizeColumns.map(col => (
+                <th key={col.key} className="text-center px-2 py-2 font-medium text-muted-foreground whitespace-nowrap">
+                  {col.label}
                 </th>
               ))}
               {currentColumnConfig.quantity && (
@@ -918,9 +982,9 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
               const editedSizes = editedItems[String(item.id)] || {};
               const currentSizes = { ...sizes, ...editedSizes };
               
-              const totalQty = visibleSizeColumns.reduce((sum, size) => {
-                const sizeKey = `size-${size}`;
-                const qty = sizeKey in editedSizes ? Number(editedSizes[sizeKey as keyof typeof editedSizes] || 0) : sizes[size];
+              const totalQty = visibleSizeColumns.reduce((sum, col) => {
+                const sizeKey = `size-${col.label}`;
+                const qty = sizeKey in editedSizes ? Number(editedSizes[sizeKey as keyof typeof editedSizes] || 0) : sizes[col.label];
                 return sum + qty;
               }, 0);
               
@@ -1002,7 +1066,7 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
                         )}
                       </div>
                     </td>
-                    {visibleSizeColumns.map(size => renderEditableCell(item, `size-${size}`, 'center'))}
+                    {visibleSizeColumns.map(col => renderEditableCell(item, `size-${col.label}`, 'center'))}
                     {currentColumnConfig.quantity && (
                       <td className="px-3 py-1.5 text-center align-top">
                         <div className="h-7 flex items-center justify-center">

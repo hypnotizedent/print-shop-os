@@ -240,6 +240,22 @@ export interface OrderDetailLineItem {
   totalQuantity: number
   totalCost: number
   sizes: {
+    // Baby/Toddler
+    '6m': number
+    '12m': number
+    '18m': number
+    '24m': number
+    '2t': number
+    '3t': number
+    '4t': number
+    '5t': number
+    // Youth
+    yxs: number
+    ys: number
+    ym: number
+    yl: number
+    yxl: number
+    // Adult
     xs: number
     s: number
     m: number
@@ -249,6 +265,8 @@ export interface OrderDetailLineItem {
     xxxl: number
     xxxxl: number
     xxxxxl: number
+    xxxxxx: number  // 6XL
+    // Other
     other: number
   }
   mockup: LineItemMockup | null
@@ -417,6 +435,22 @@ export function useOrderDetail(visualId: string | null) {
             totalQuantity: li.totalQuantity || li.total_quantity || 0,
             totalCost: parseFloat(li.totalCost) || parseFloat(li.total_cost) || 0,
             sizes: {
+              // Baby/Toddler
+              '6m': li.sizes?.['6m'] || li.size_6_m || 0,
+              '12m': li.sizes?.['12m'] || li.size_12_m || 0,
+              '18m': li.sizes?.['18m'] || li.size_18_m || 0,
+              '24m': li.sizes?.['24m'] || li.size_24_m || 0,
+              '2t': li.sizes?.['2t'] || li.size_2_t || 0,
+              '3t': li.sizes?.['3t'] || li.size_3_t || 0,
+              '4t': li.sizes?.['4t'] || li.size_4_t || 0,
+              '5t': li.sizes?.['5t'] || li.size_5_t || 0,
+              // Youth
+              yxs: li.sizes?.yxs || li.size_yxs || 0,
+              ys: li.sizes?.ys || li.size_ys || 0,
+              ym: li.sizes?.ym || li.size_ym || 0,
+              yl: li.sizes?.yl || li.size_yl || 0,
+              yxl: li.sizes?.yxl || li.size_yxl || 0,
+              // Adult
               xs: li.sizes?.xs || li.size_xs || 0,
               s: li.sizes?.s || li.size_s || 0,
               m: li.sizes?.m || li.size_m || 0,
@@ -426,6 +460,8 @@ export function useOrderDetail(visualId: string | null) {
               xxxl: li.sizes?.xxxl || li.size_3_xl || li.sizes?.['3xl'] || 0,
               xxxxl: li.sizes?.xxxxl || li.size_4_xl || li.sizes?.['4xl'] || 0,
               xxxxxl: li.sizes?.xxxxxl || li.size_5_xl || li.sizes?.['5xl'] || 0,
+              xxxxxx: li.sizes?.xxxxxx || li.size_6_xl || li.sizes?.['6xl'] || 0,
+              // Other
               other: li.sizes?.other || li.size_other || 0,
             },
             mockup: mockup,

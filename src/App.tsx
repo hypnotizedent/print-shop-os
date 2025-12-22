@@ -67,7 +67,7 @@ function App() {
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   const [globalSearch, setGlobalSearch] = useState('');
 
-  console.log('App loaded - Spark UI v2.2.5', {
+  console.log('App loaded - Spark UI v2.3.0', {
     ordersCount: apiOrders?.length || 0,
     customersCount: apiCustomers?.length || 0,
     ordersError,
@@ -299,7 +299,7 @@ function App() {
               <circle cx="26" cy="6" r="1" fill="#10B981"/>
             </svg>
             <span className="font-bold text-lg tracking-wide">MINT PRINTS</span>
-            <span className="text-[8px] text-muted-foreground ml-1">v2.2.5</span>
+            <span className="text-[8px] text-muted-foreground ml-1">v2.3.0</span>
           </div>
         </div>
         
