@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Package, Users, ChartLine, ArrowLeft } from '@phosphor-icons/react';
+import { Package, Users, ChartLine, ArrowLeft, FileText } from '@phosphor-icons/react';
 import { Transaction, View, OrderStatus, ImprintMethod } from '@/lib/types';
 import { useOrders, useCustomers } from '@/lib/hooks';
 import { type OrderStatus as ApiOrderStatus } from '@/lib/api-adapter';
 import { Dashboard } from '@/components/dashboard/Dashboard';
 import { OrdersList } from '@/components/orders/OrdersList';
 import { OrderDetailPage } from '@/components/orders/OrderDetailPage';
+import { QuotesListPage } from '@/components/quotes/QuotesListPage';
+import { QuoteBuilderPage } from '@/components/quotes/QuoteBuilderPage';
 import { CustomersListPage } from '@/components/customers/CustomersListPage';
 import { CustomerDetailPage } from '@/components/customers/CustomerDetailPage';
 import { Button } from '@/components/ui/button';
@@ -57,7 +59,7 @@ function App() {
   const { orders: apiOrders, loading: ordersLoading } = useOrders({ limit: 100 });
   const { customers: apiCustomers, loading: customersLoading } = useCustomers({ limit: 100 });
   
-  console.log('App loaded - Spark UI v2.1.5', { ordersCount: apiOrders.length, customersCount: apiCustomers.length });
+  console.log('App loaded - Spark UI v2.2.0', { ordersCount: apiOrders.length, customersCount: apiCustomers.length });
   
   // Transform API orders to match component types
   const orders = apiOrders.map(o => ({
@@ -132,6 +134,7 @@ function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
   
   const handleViewOrder = (orderId: string) => {
     setSelectedOrderId(orderId);
@@ -142,7 +145,17 @@ function App() {
     setSelectedCustomerId(customerId);
     setCurrentView('customer-detail');
   };
-  
+
+  const handleViewQuote = (quoteId: string) => {
+    setSelectedQuoteId(quoteId);
+    setCurrentView('quote-builder');
+  };
+
+  const handleNewQuote = () => {
+    setSelectedQuoteId(null);
+    setCurrentView('quote-builder');
+  };
+
   const handleBack = () => {
     if (currentView === 'order-detail') {
       setCurrentView('orders');
@@ -150,6 +163,9 @@ function App() {
     } else if (currentView === 'customer-detail') {
       setCurrentView('customers');
       setSelectedCustomerId(null);
+    } else if (currentView === 'quote-builder') {
+      setCurrentView('quotes');
+      setSelectedQuoteId(null);
     }
   };
   
@@ -183,6 +199,20 @@ function App() {
             onViewCustomer={handleViewCustomer}
           />
         ) : null;
+      case 'quotes':
+        return (
+          <QuotesListPage
+            onViewQuote={handleViewQuote}
+            onNewQuote={handleNewQuote}
+          />
+        );
+      case 'quote-builder':
+        return (
+          <QuoteBuilderPage
+            quoteId={selectedQuoteId}
+            onBack={() => { setCurrentView('quotes'); setSelectedQuoteId(null); }}
+          />
+        );
       case 'customers':
         return (
           <CustomersListPage
@@ -201,7 +231,7 @@ function App() {
     }
   };
   
-  const showBackButton = currentView === 'order-detail' || currentView === 'customer-detail';
+  const showBackButton = currentView === 'order-detail' || currentView === 'customer-detail' || currentView === 'quote-builder';
   
   return (
     <div className="min-h-screen bg-background text-foreground flex">
@@ -216,7 +246,7 @@ function App() {
               <circle cx="26" cy="6" r="1" fill="#10B981"/>
             </svg>
             <span className="font-bold text-lg tracking-wide">MINT PRINTS</span>
-            <span className="text-[8px] text-muted-foreground ml-1">v2.1.5</span>
+            <span className="text-[8px] text-muted-foreground ml-1">v2.2.0</span>
           </div>
         </div>
         
@@ -233,7 +263,7 @@ function App() {
             Home
           </Button>
           
-          <Button 
+          <Button
             variant={currentView === 'orders' || currentView === 'order-detail' ? 'secondary' : 'ghost'}
             size="sm"
             onClick={() => { setCurrentView('orders'); setSelectedOrderId(null); }}
@@ -242,8 +272,18 @@ function App() {
             <Package weight="bold" className="w-4 h-4" />
             Orders
           </Button>
-          
-          <Button 
+
+          <Button
+            variant={currentView === 'quotes' || currentView === 'quote-builder' ? 'secondary' : 'ghost'}
+            size="sm"
+            onClick={() => { setCurrentView('quotes'); setSelectedQuoteId(null); }}
+            className="w-full justify-start gap-2 h-8"
+          >
+            <FileText weight="bold" className="w-4 h-4" />
+            Quotes
+          </Button>
+
+          <Button
             variant={currentView === 'customers' || currentView === 'customer-detail' ? 'secondary' : 'ghost'}
             size="sm"
             onClick={() => { setCurrentView('customers'); setSelectedCustomerId(null); }}
@@ -326,11 +366,11 @@ function App() {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button variant="default" size="sm" className="gap-2 h-8">
+              <Button variant="default" size="sm" className="gap-2 h-8" onClick={handleNewQuote}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                 </svg>
-                New Order
+                New Quote
               </Button>
             </div>
           </div>
