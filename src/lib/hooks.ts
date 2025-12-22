@@ -151,7 +151,7 @@ export interface OrderListItem {
 
 export function useOrdersList(options?: {
   limit?: number
-  offset?: number
+  page?: number  // 1-indexed page number (API uses page, not offset)
   status?: string
 }) {
   const [orders, setOrders] = useState<OrderListItem[]>([])
@@ -165,7 +165,7 @@ export function useOrdersList(options?: {
     try {
       const params = new URLSearchParams()
       if (options?.limit) params.set('limit', String(options.limit))
-      if (options?.offset) params.set('offset', String(options.offset))
+      if (options?.page) params.set('page', String(options.page))  // API uses page, not offset
       if (options?.status && options.status !== 'all') params.set('status', options.status)
 
       const response = await fetch(`${API_BASE_URL}/api/orders?${params}`)
@@ -194,7 +194,7 @@ export function useOrdersList(options?: {
     } finally {
       setLoading(false)
     }
-  }, [options?.limit, options?.offset, options?.status])
+  }, [options?.limit, options?.page, options?.status])
 
   useEffect(() => {
     load()

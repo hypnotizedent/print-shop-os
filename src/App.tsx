@@ -61,7 +61,7 @@ function App() {
   const { orders: apiOrders, loading: ordersLoading } = useOrders({ limit: 100 });
   const { customers: apiCustomers, loading: customersLoading } = useCustomers({ limit: 100 });
   
-  console.log('App loaded - Spark UI v2.2.3', { ordersCount: apiOrders.length, customersCount: apiCustomers.length });
+  console.log('App loaded - Spark UI v2.2.4', { ordersCount: apiOrders.length, customersCount: apiCustomers.length });
   
   // Transform API orders to match component types
   const orders = apiOrders.map(o => ({
@@ -137,7 +137,23 @@ function App() {
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
-  
+  const [globalSearch, setGlobalSearch] = useState('');
+
+  const handleGlobalSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && globalSearch.trim()) {
+      const searchTerm = globalSearch.trim();
+      // If it looks like an order number (all digits), go directly to order detail
+      if (/^\d+$/.test(searchTerm)) {
+        setSelectedOrderId(searchTerm);
+        setCurrentView('order-detail');
+      } else {
+        // Otherwise, go to orders page (search will happen client-side there)
+        setCurrentView('orders');
+      }
+      setGlobalSearch(''); // Clear search after navigation
+    }
+  };
+
   const handleViewOrder = (orderId: string) => {
     setSelectedOrderId(orderId);
     setCurrentView('order-detail');
@@ -266,7 +282,7 @@ function App() {
               <circle cx="26" cy="6" r="1" fill="#10B981"/>
             </svg>
             <span className="font-bold text-lg tracking-wide">MINT PRINTS</span>
-            <span className="text-[8px] text-muted-foreground ml-1">v2.2.3</span>
+            <span className="text-[8px] text-muted-foreground ml-1">v2.2.4</span>
           </div>
         </div>
         
@@ -380,7 +396,10 @@ function App() {
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search customers, quotes, jobs..."
+                  placeholder="Search by order # or customer..."
+                  value={globalSearch}
+                  onChange={(e) => setGlobalSearch(e.target.value)}
+                  onKeyDown={handleGlobalSearch}
                   className="w-full pl-9 pr-3 py-1.5 bg-card/50 border border-border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>

@@ -39,13 +39,11 @@ const PAGE_SIZE = 50;
 export function OrdersList({ onViewOrder }: OrdersListProps) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [page, setPage] = useState(0);
-
-  const offset = page * PAGE_SIZE;
+  const [page, setPage] = useState(1);  // 1-indexed for API
 
   const { orders, total, loading, error, refetch } = useOrdersList({
     limit: PAGE_SIZE,
-    offset,
+    page,  // API uses page parameter (1-indexed)
     status: statusFilter,
   });
 
@@ -61,17 +59,18 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
   }, [orders, search]);
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const hasNextPage = offset + orders.length < total;
-  const hasPrevPage = page > 0;
+  const hasNextPage = page < totalPages;
+  const hasPrevPage = page > 1;
+  const offset = (page - 1) * PAGE_SIZE;  // For display purposes
 
   const handleStatusChange = (value: string) => {
     setStatusFilter(value);
-    setPage(0); // Reset to first page when filter changes
+    setPage(1); // Reset to first page when filter changes
   };
 
   const handlePrevPage = () => {
     if (hasPrevPage) {
-      setPage(p => Math.max(0, p - 1));
+      setPage(p => Math.max(1, p - 1));
     }
   };
 
@@ -237,7 +236,7 @@ export function OrdersList({ onViewOrder }: OrdersListProps) {
               Previous
             </Button>
             <span className="text-xs text-muted-foreground px-2">
-              Page {page + 1} of {totalPages}
+              Page {page} of {totalPages}
             </span>
             <Button
               variant="outline"

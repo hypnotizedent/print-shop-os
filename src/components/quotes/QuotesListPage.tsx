@@ -118,10 +118,7 @@ export function QuotesListPage({ onViewQuote, onNewQuote }: QuotesListPageProps)
             {quotes.length} total quotes
           </p>
         </div>
-        <Button onClick={onNewQuote} size="sm" className="gap-2 h-9">
-          <Plus size={16} weight="bold" />
-          New Quote
-        </Button>
+        {/* New Quote button is in the global header - no duplicate needed here */}
       </div>
 
       <div className="flex gap-2">

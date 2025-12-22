@@ -1056,7 +1056,8 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
                                   key={mockup.id}
                                   onClick={() => {
                                     const allMockups = imprint.mockups?.map(m => ({
-                                      url: m.url,
+                                      // Use thumbnail for display, fall back to URL (handles PDF files)
+                                      url: m.thumbnail_url || m.url,
                                       name: m.name || 'Imprint mockup',
                                       id: String(m.id)
                                     })) || [];
@@ -1149,7 +1150,7 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
     }
   };
 
-  // Status options from database
+  // Status options matching Printavo statuses from API
   const STATUS_OPTIONS = [
     { value: 'QUOTE', label: 'Quote' },
     { value: 'Quote Out For Approval - Email', label: 'Quote Sent' },
@@ -1158,7 +1159,7 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
     { value: 'MATERIALS PENDING', label: 'Materials Pending' },
     { value: 'SP - Need to Burn Screens', label: 'Burn Screens' },
     { value: 'SP - PRODUCTION', label: 'SP Production' },
-    { value: 'DTG - PRODUCTION', label: 'DTG Production' },
+    { value: 'DTG - PRODUCTION ', label: 'DTG Production' },  // Note: API has trailing space
     { value: 'READY FOR PICK UP', label: 'Ready for Pickup' },
     { value: 'COMPLETE', label: 'Complete' },
   ];
@@ -1838,7 +1839,8 @@ function ImprintCard({ imprint, onImageClick, isLineItemEditing }: ImprintCardPr
                   key={mockup.id}
                   onClick={() => {
                     const allMockups = imprint.mockups?.map(m => ({
-                      url: m.url,
+                      // Use thumbnail for display, fall back to URL (handles PDF files)
+                      url: m.thumbnail_url || m.url,
                       name: m.name || 'Imprint mockup',
                       id: String(m.id)
                     })) || [];
@@ -1848,7 +1850,7 @@ function ImprintCard({ imprint, onImageClick, isLineItemEditing }: ImprintCardPr
                   title={mockup.name || 'Mockup'}
                 >
                   <img
-                    src={mockup.url}
+                    src={mockup.thumbnail_url || mockup.url}
                     alt={mockup.name || 'Imprint mockup'}
                     className="w-full h-full object-cover"
                     onError={(e) => {
