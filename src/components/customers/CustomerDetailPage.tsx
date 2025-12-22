@@ -27,8 +27,18 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
   const { customer, orders, loading, error, refetch } = useCustomerDetail(customerId);
 
   // Edit mode state
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [isEditingContact, setIsEditingContact] = useState(false);
   const [shippingSameAsBilling, setShippingSameAsBilling] = useState(false);
+  
+  // Contact info state
+  const [contactInfo, setContactInfo] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    company: ''
+  });
+  
   const [billingAddress, setBillingAddress] = useState({
     street: '',
     city: '',
@@ -44,8 +54,16 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
     country: 'US'
   });
 
-  // Initialize addresses when customer loads
+  // Initialize contact info and addresses when customer loads
   useEffect(() => {
+    if (customer) {
+      setContactInfo({
+        name: customer.name || '',
+        email: customer.email || '',
+        phone: customer.phone || '',
+        company: customer.company || ''
+      });
+    }
     if (customer?.billingAddress) {
       setBillingAddress({
         street: customer.billingAddress.street || '',
@@ -68,7 +86,7 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
 
   // Google Places Autocomplete for billing address
   useEffect(() => {
-    if (!window.google || !isEditing) return;
+    if (!window.google || !isEditingAddress) return;
     
     const input = document.getElementById('billing-address-autocomplete') as HTMLInputElement;
     if (!input) return;
@@ -102,11 +120,11 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
     return () => {
       window.google.maps.event.clearInstanceListeners(autocomplete);
     };
-  }, [isEditing]);
+  }, [isEditingAddress]);
 
   // Google Places Autocomplete for shipping address
   useEffect(() => {
-    if (!window.google || !isEditing || shippingSameAsBilling) return;
+    if (!window.google || !isEditingAddress || shippingSameAsBilling) return;
     
     const input = document.getElementById('shipping-address-autocomplete') as HTMLInputElement;
     if (!input) return;
@@ -140,24 +158,36 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
     return () => {
       window.google.maps.event.clearInstanceListeners(autocomplete);
     };
-  }, [isEditing, shippingSameAsBilling]);
+  }, [isEditingAddress, shippingSameAsBilling]);
 
-  const handleSave = () => {
-    // TODO: Implement API call to save addresses
-    // For now, just update local state and exit edit mode
+  const handleSaveContact = () => {
+    console.log('Saving contact info:', contactInfo);
+    alert('Note: Contact changes are displayed but not yet persisted to the database. API integration needed.');
+    setIsEditingContact(false);
+  };
+
+  const handleCancelContact = () => {
+    if (customer) {
+      setContactInfo({
+        name: customer.name || '',
+        email: customer.email || '',
+        phone: customer.phone || '',
+        company: customer.company || ''
+      });
+    }
+    setIsEditingContact(false);
+  };
+
+  const handleSaveAddress = () => {
     console.log('Saving addresses:', { 
       billingAddress, 
       shippingAddress: shippingSameAsBilling ? billingAddress : shippingAddress 
     });
-    
-    // Show a warning that this is not persisted yet
     alert('Note: Address changes are displayed but not yet persisted to the database. API integration needed.');
-    
-    setIsEditing(false);
+    setIsEditingAddress(false);
   };
 
-  const handleCancel = () => {
-    // Reset to original values
+  const handleCancelAddress = () => {
     if (customer?.billingAddress) {
       setBillingAddress({
         street: customer.billingAddress.street || '',
@@ -176,7 +206,7 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
         country: customer.shippingAddress.country || 'US'
       });
     }
-    setIsEditing(false);
+    setIsEditingAddress(false);
   };
 
   // Calculate totals
@@ -256,10 +286,35 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold tracking-tight">{customer.name}</h2>
-          {customer.company && (
-            <p className="text-muted-foreground mt-1">{customer.company}</p>
+        <div className="flex-1">
+          {!isEditingContact ? (
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-semibold tracking-tight">{contactInfo.name || customer.name}</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsEditingContact(true)}
+                className="h-7 w-7 p-0 opacity-0 hover:opacity-100 transition-opacity"
+              >
+                <PencilSimple className="w-4 h-4" />
+              </Button>
+            </div>
+          ) : (
+            <input
+              type="text"
+              value={contactInfo.name}
+              onChange={(e) => setContactInfo({...contactInfo, name: e.target.value})}
+              className="text-2xl font-semibold tracking-tight bg-secondary border border-input rounded px-3 py-1 text-foreground w-full max-w-md"
+              autoFocus
+              onBlur={handleSaveContact}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSaveContact();
+                if (e.key === 'Escape') handleCancelContact();
+              }}
+            />
+          )}
+          {contactInfo.company && (
+            <p className="text-muted-foreground mt-1">{contactInfo.company}</p>
           )}
         </div>
         <div className="text-right">
@@ -276,36 +331,104 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
           {/* Contact Info */}
           <Card className="bg-card border-border">
             <CardHeader>
-              <CardTitle className="text-base font-medium flex items-center gap-2">
-                <User className="w-4 h-4" weight="bold" />
-                Contact Info
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-base font-medium flex items-center gap-2">
+                  <User className="w-4 h-4" weight="bold" />
+                  Contact Info
+                </CardTitle>
+                {!isEditingContact ? (
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setIsEditingContact(true)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <PencilSimple className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={handleSaveContact}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Check className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={handleCancelContact}
+                      className="h-8 w-8 p-0"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
-              {customer.email && (
-                <div className="flex items-center gap-3">
-                  <Envelope className="w-4 h-4 text-muted-foreground" weight="bold" />
-                  <a href={`mailto:${customer.email}`} className="text-primary hover:underline">
-                    {customer.email}
-                  </a>
+              {!isEditingContact ? (
+                <>
+                  {contactInfo.email && (
+                    <div className="flex items-center gap-3">
+                      <Envelope className="w-4 h-4 text-muted-foreground" weight="bold" />
+                      <a href={`mailto:${contactInfo.email}`} className="text-primary hover:underline">
+                        {contactInfo.email}
+                      </a>
+                    </div>
+                  )}
+                  {contactInfo.phone && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-4 h-4 text-muted-foreground" weight="bold" />
+                      <a href={`tel:${contactInfo.phone}`} className="hover:text-primary">
+                        {contactInfo.phone}
+                      </a>
+                    </div>
+                  )}
+                  {contactInfo.company && (
+                    <div className="flex items-center gap-3">
+                      <Buildings className="w-4 h-4 text-muted-foreground" weight="bold" />
+                      <span>{contactInfo.company}</span>
+                    </div>
+                  )}
+                  {!contactInfo.email && !contactInfo.phone && !contactInfo.company && (
+                    <p className="text-muted-foreground">No contact info available</p>
+                  )}
+                </>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <label className="text-xs text-muted-foreground uppercase block mb-1">Email</label>
+                    <input
+                      type="email"
+                      value={contactInfo.email}
+                      onChange={(e) => setContactInfo({...contactInfo, email: e.target.value})}
+                      placeholder="email@example.com"
+                      className="w-full bg-secondary border border-input rounded px-3 py-2 text-foreground"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground uppercase block mb-1">Phone</label>
+                    <input
+                      type="tel"
+                      value={contactInfo.phone}
+                      onChange={(e) => setContactInfo({...contactInfo, phone: e.target.value})}
+                      placeholder="(555) 123-4567"
+                      className="w-full bg-secondary border border-input rounded px-3 py-2 text-foreground"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-muted-foreground uppercase block mb-1">Company</label>
+                    <input
+                      type="text"
+                      value={contactInfo.company}
+                      onChange={(e) => setContactInfo({...contactInfo, company: e.target.value})}
+                      placeholder="Company name"
+                      className="w-full bg-secondary border border-input rounded px-3 py-2 text-foreground"
+                    />
+                  </div>
                 </div>
-              )}
-              {customer.phone && (
-                <div className="flex items-center gap-3">
-                  <Phone className="w-4 h-4 text-muted-foreground" weight="bold" />
-                  <a href={`tel:${customer.phone}`} className="hover:text-primary">
-                    {customer.phone}
-                  </a>
-                </div>
-              )}
-              {customer.company && (
-                <div className="flex items-center gap-3">
-                  <Buildings className="w-4 h-4 text-muted-foreground" weight="bold" />
-                  <span>{customer.company}</span>
-                </div>
-              )}
-              {!customer.email && !customer.phone && !customer.company && (
-                <p className="text-muted-foreground">No contact info available</p>
               )}
             </CardContent>
           </Card>
@@ -318,11 +441,11 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
                   <MapPin className="w-4 h-4" weight="bold" />
                   Location
                 </CardTitle>
-                {!isEditing ? (
+                {!isEditingAddress ? (
                   <Button 
                     variant="ghost" 
                     size="sm"
-                    onClick={() => setIsEditing(true)}
+                    onClick={() => setIsEditingAddress(true)}
                     className="h-8 w-8 p-0"
                   >
                     <PencilSimple className="w-4 h-4" />
@@ -332,7 +455,7 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={handleSave}
+                      onClick={handleSaveAddress}
                       className="h-8 w-8 p-0"
                     >
                       <Check className="w-4 h-4" />
@@ -340,7 +463,7 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={handleCancel}
+                      onClick={handleCancelAddress}
                       className="h-8 w-8 p-0"
                     >
                       <X className="w-4 h-4" />
@@ -350,7 +473,7 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
               </div>
             </CardHeader>
             <CardContent className="text-sm space-y-4">
-              {!isEditing ? (
+              {!isEditingAddress ? (
                 <>
                   {/* View Mode - Billing Address */}
                   <div>
