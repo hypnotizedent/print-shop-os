@@ -831,10 +831,84 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
     setEditingImprintCell({ ...editingImprintCell, value });
   };
 
-  const handleImprintCellBlur = () => {
+  const handleImprintCellBlur = async () => {
     if (editingImprintCell) {
-      toast.success('Imprint updated');
+      const imprintId = editingImprintCell.imprintId;
+      const field = editingImprintCell.field;
+      const value = editingImprintCell.value;
+
+      // Map frontend field names to API field names
+      const fieldMap: Record<string, string> = {
+        location: 'location',
+        decorationType: 'decoration_type',
+        description: 'description',
+        colorCount: 'color_count',
+        colors: 'colors',
+        width: 'width',
+        height: 'height',
+      };
+
+      const apiField = fieldMap[field] || field;
+
+      try {
+        const response = await fetch(`https://mintprints-api.ronny.works/api/orders/${orderId}/imprints/${imprintId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ [apiField]: value }),
+        });
+
+        if (!response.ok) throw new Error('Failed to update imprint');
+
+        toast.success('Imprint updated');
+        onRefetch();
+      } catch (error) {
+        console.error('Failed to update imprint:', error);
+        toast.error('Failed to update imprint');
+      }
+
       setEditingImprintCell(null);
+    }
+  };
+
+  const handleDeleteImprint = async (imprintId: number) => {
+    if (!confirm('Delete this imprint?')) return;
+
+    try {
+      const response = await fetch(`https://mintprints-api.ronny.works/api/orders/${orderId}/imprints/${imprintId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete imprint');
+
+      toast.success('Imprint deleted');
+      onRefetch();
+    } catch (error) {
+      console.error('Failed to delete imprint:', error);
+      toast.error('Failed to delete imprint');
+    }
+  };
+
+  const handleAddImprintForItem = async (lineItemId: number) => {
+    try {
+      const response = await fetch(`https://mintprints-api.ronny.works/api/orders/${orderId}/imprints`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          line_item_id: lineItemId,
+          location: 'New Location',
+          decoration_type: 'Screen Printing',
+          description: '',
+          color_count: 1,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to add imprint');
+
+      toast.success('Imprint added');
+      onRefetch();
+    } catch (error) {
+      console.error('Failed to add imprint:', error);
+      toast.error('Failed to add imprint');
     }
   };
 
@@ -1172,7 +1246,20 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
                         </div>
                       </td>
                       {currentColumnConfig.quantity && <td></td>}
-                      <td colSpan={4}></td>
+                      <td colSpan={3}></td>
+                      <td className="px-2 py-1.5 align-top">
+                        <div className="h-7 flex items-center justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteImprint(imprint.id)}
+                            title="Delete imprint"
+                          >
+                            <Trash size={14} weight="bold" />
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
 
@@ -1194,9 +1281,7 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
                             variant="outline"
                             size="sm"
                             className="h-6 text-xs gap-1 px-2"
-                            onClick={() => {
-                              toast.info('Add Imprint functionality coming soon');
-                            }}
+                            onClick={() => handleAddImprintForItem(item.id)}
                           >
                             <Plus size={12} weight="bold" />
                             Add Imprint
@@ -2074,9 +2159,29 @@ function LineItemCard({ item, index, orderId, orderStatus, onImageClick, columnC
     // In a real implementation, this would upload the files and update the line item
   };
 
-  const handleAddImprint = (imprint: Partial<LineItemImprint>) => {
-    toast.success(`Imprint "${imprint.location}" added to line item`);
-    // In a real implementation, this would add the imprint to the line item
+  const handleAddImprint = async (imprint: Partial<LineItemImprint>) => {
+    try {
+      const response = await fetch(`https://mintprints-api.ronny.works/api/orders/${orderId}/imprints`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          line_item_id: item.id,
+          location: imprint.location || 'New Location',
+          decoration_type: imprint.decorationType || 'Screen Printing',
+          description: imprint.description || '',
+          color_count: imprint.colorCount || 1,
+          colors: imprint.colors || '',
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to add imprint');
+
+      toast.success(`Imprint "${imprint.location}" added`);
+      onRefetch();
+    } catch (error) {
+      console.error('Failed to add imprint:', error);
+      toast.error('Failed to add imprint');
+    }
   };
 
   const lineItemMockups = item.mockup ? [item.mockup] : [];

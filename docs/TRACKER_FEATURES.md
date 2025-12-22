@@ -1,28 +1,36 @@
 # Feature Tracker - ui-v3
 
 > Last Updated: December 22, 2025
+> Current Version: v2.5.0
 
 ---
 
-## Need To Do
+## Upcoming Versions
 
-| Feature | Plan Doc | Priority | Effort |
+### v2.5.1 - Line Item CRUD
+
+| Feature | Plan Doc | Priority | Status |
 |---------|----------|----------|--------|
-| Imprint CRUD (add/edit/delete) | - | HIGH | 4-6h |
-| Artwork upload | - | MEDIUM | 3-4h |
-| Line item add (inline) | `PLAN_v224_FIXES.md` | MEDIUM | 2-3h |
-| Customer address display | `AUDIT_UI_QA_DEC22.md` | LOW | 1h |
-| Edit persistence (save to API) | `AUDIT_UI_WIRING_GAPS.md` | MEDIUM | 4-6h |
-| Add quotes to global search | `AUDIT_SEARCH_SYSTEMS.md` | LOW | 1h |
-| Cmd+K keyboard shortcut | `AUDIT_SEARCH_SYSTEMS.md` | LOW | 30m |
+| Line Item Add | `PLAN_NEXT_FEATURES.md` | HIGH | Pending API |
+| Line Item Delete | `PLAN_NEXT_FEATURES.md` | HIGH | Pending API |
 
----
+**API Dependencies**: See `HANDOFF_RONNY_OPS_API.md`
 
-## In Progress
+### v2.6.0 - File Management (Blocked by ronny-ops API)
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| - | - | - |
+| Feature | Plan Doc | Priority | Status |
+|---------|----------|----------|--------|
+| Artwork Upload | `PLAN_NEXT_FEATURES.md` | MEDIUM | Pending API |
+
+**API Dependencies**: POST /api/orders/:id/artwork (MinIO upload)
+
+### v2.7.0 - Edit & Polish
+
+| Feature | Plan Doc | Priority | Status |
+|---------|----------|----------|--------|
+| Edit Persistence | `PLAN_NEXT_FEATURES.md` | MEDIUM | Pending API verify |
+| Cmd+K shortcut | `PLAN_NEXT_FEATURES.md` | LOW | Ready |
+| Customer address display | `AUDIT_UI_QA_DEC22.md` | LOW | Ready |
 
 ---
 
@@ -30,6 +38,7 @@
 
 | Version | Features | Date |
 |---------|----------|------|
+| v2.5.0 | Imprint CRUD (add/edit/delete wired to API) | Dec 22, 2025 |
 | v2.4.0 | Unified global search with typeahead dropdown | Dec 22, 2025 |
 | v2.3.0 | Dynamic size columns (baby, youth, adult) | Dec 22, 2025 |
 | v2.2.5 | Remove mock data injection, empty states, size column collapse | Dec 22, 2025 |
