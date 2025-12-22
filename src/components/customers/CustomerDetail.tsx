@@ -72,10 +72,16 @@ export function CustomerDetail({ customer, orders, onViewOrder }: CustomerDetail
               </CardTitle>
             </CardHeader>
             <CardContent className="text-sm">
-              <p>{customer.address.street}</p>
-              <p>
-                {customer.address.city}, {customer.address.state} {customer.address.zip}
-              </p>
+              {customer.address ? (
+                <>
+                  <p>{customer.address.street}</p>
+                  <p>
+                    {customer.address.city}, {customer.address.state} {customer.address.zip}
+                  </p>
+                </>
+              ) : (
+                <p className="text-muted-foreground">No address on file</p>
+              )}
             </CardContent>
           </Card>
         </div>

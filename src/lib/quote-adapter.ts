@@ -146,7 +146,9 @@ export function transformQuoteToOrder(quoteData: any): QuoteAsOrder {
     printavoStatusName: mapQuoteStatus(quote.status),
     totalAmount: parseFloat(quote.total) || 0,
     amountOutstanding: parseFloat(quote.total) || 0, // Quotes are unpaid
+    salesTax: parseFloat(quote.tax_amount) || 0,
     dueDate: quote.expires_at || quote.due_date || null,
+    customerDueDate: null,
     createdAt: quote.created_at || new Date().toISOString(),
     updatedAt: quote.updated_at || new Date().toISOString(),
     customer,

@@ -1167,7 +1167,7 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
   const [converting, setConverting] = useState(false);
 
   // Helper to check if this is a quote
-  const isQuote = mode === 'quote' || (order && 'isQuote' in order && order.isQuote);
+  const isQuote: boolean = mode === 'quote' || (order !== null && 'isQuote' in order && order.isQuote === true);
 
   // Handle convert to order
   const handleConvertToOrder = async () => {
@@ -1397,7 +1397,6 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
               </span>
             </p>
           </div>
-          {/* Convert to Order button for quotes */}
           {isQuote && (
             <Button
               onClick={handleConvertToOrder}

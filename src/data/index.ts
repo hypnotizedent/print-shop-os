@@ -144,6 +144,9 @@ const createOrder = (
     nickname,
     status,
     customer_id,
+    customer_name,
+    customer_company: customer.company,
+    line_items_count: 1,
     customer,
     line_items: [
       {
@@ -193,6 +196,7 @@ const createOrder = (
     amount_paid: status === 'delivered' ? total : total * 0.5,
     amount_outstanding: status === 'delivered' ? 0 : total * 0.5,
     due_date,
+    customer_due_date: due_date,
     order_date: '2024-01-15',
     created_at: '2024-01-15T10:00:00Z',
     updated_at: '2024-01-15T10:00:00Z',
