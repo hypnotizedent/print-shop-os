@@ -58,13 +58,36 @@ function mapImprintLocation(location: string): 'Front' | 'Back' | 'Left Chest' |
 }
 
 function App() {
-  const { orders: apiOrders, loading: ordersLoading } = useOrders({ limit: 100 });
-  const { customers: apiCustomers, loading: customersLoading } = useCustomers({ limit: 100 });
+  const { orders: apiOrders, loading: ordersLoading, error: ordersError } = useOrders({ limit: 100 });
+  const { customers: apiCustomers, loading: customersLoading, error: customersError } = useCustomers({ limit: 100 });
   
-  console.log('App loaded - Spark UI v2.2.4', { ordersCount: apiOrders.length, customersCount: apiCustomers.length });
+  const [currentView, setCurrentView] = useState<View>('dashboard');
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
+  const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
+  const [globalSearch, setGlobalSearch] = useState('');
+  
+  console.log('App loaded - Spark UI v2.2.4', { 
+    ordersCount: apiOrders?.length || 0, 
+    customersCount: apiCustomers?.length || 0,
+    ordersError,
+    customersError 
+  });
+  
+  // Show loading state while data is being fetched
+  if (ordersLoading || customersLoading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
   
   // Transform API orders to match component types
-  const orders = apiOrders.map(o => ({
+  const orders = (apiOrders || []).map(o => ({
     id: o.id,
     visual_id: o.visual_id,
     customer_id: o.customer_id,
@@ -114,7 +137,7 @@ function App() {
   }));
 
   // Transform API customers to match component types
-  const customers = apiCustomers.map(c => ({
+  const customers = (apiCustomers || []).map(c => ({
     id: c.id,
     name: c.name,
     email: c.email,
@@ -132,12 +155,6 @@ function App() {
   }));
 
   const transactions: Transaction[] = [];
-  
-  const [currentView, setCurrentView] = useState<View>('dashboard');
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
-  const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
-  const [globalSearch, setGlobalSearch] = useState('');
 
   const handleGlobalSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' && globalSearch.trim()) {
