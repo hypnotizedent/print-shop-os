@@ -58,8 +58,8 @@ function mapImprintLocation(location: string): 'Front' | 'Back' | 'Left Chest' |
 }
 
 function App() {
-  const { orders: apiOrders, loading: ordersLoading, error: ordersError } = useOrders({ limit: 100 });
-  const { customers: apiCustomers, loading: customersLoading, error: customersError } = useCustomers({ limit: 100 });
+  const { orders: apiOrders, loading: ordersLoading, error: ordersError } = useOrders();
+  const { customers: apiCustomers, loading: customersLoading, error: customersError } = useCustomers();
   
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
