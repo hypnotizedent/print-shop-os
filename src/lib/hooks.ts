@@ -324,12 +324,20 @@ export function useOrderDetail(visualId: string | null) {
       console.log('🔍 Line Items from API:', data.lineItems || data.line_items)
       console.log('🔍 Customer from API:', data.customer)
 
+      // Get order-level imprintMockups to distribute to imprints
+      const orderImprintMockups = (data.imprintMockups || []).map((m: any) => ({
+        id: m.id,
+        url: m.url,
+        name: m.name || 'Imprint Mockup',
+        thumbnail_url: m.thumbnail_url || m.thumbnailUrl || null,
+      }));
+
       // Map API response to our type
       const orderDetail: OrderDetail = {
         id: data.id,
-        orderNumber: data.orderNumber || data.visual_id || String(data.id),
+        orderNumber: data.orderNumber || data.visualId || data.visual_id || String(data.id),
         orderNickname: data.orderNickname || data.order_nickname || null,
-        status: data.status || 'unknown',
+        status: data.printavoStatusName || data.printavo_status_name || data.status || 'unknown',
         printavoStatusName: data.printavoStatusName || data.printavo_status_name || data.status || '',
         totalAmount: parseFloat(data.totalAmount) || parseFloat(data.total_amount) || 0,
         amountOutstanding: parseFloat(data.amountOutstanding) || parseFloat(data.amount_outstanding) || 0,
@@ -358,6 +366,16 @@ export function useOrderDetail(visualId: string | null) {
           // Get imprints from API or create mock data for testing
           let imprints = (li.imprints || []).map((imp: any) => {
             console.log('🔍 Mapping imprint:', imp);
+            // Use imprint's own mockups if available, otherwise use order-level imprintMockups
+            const imprintMockups = (imp.mockups || []).length > 0
+              ? (imp.mockups || []).map((m: any) => ({
+                  id: m.id,
+                  url: m.url,
+                  name: m.name || 'Mockup',
+                  thumbnail_url: m.thumbnail_url || m.thumbnailUrl || null,
+                }))
+              : orderImprintMockups;
+
             return {
               id: imp.id,
               location: imp.location || null,
@@ -369,12 +387,7 @@ export function useOrderDetail(visualId: string | null) {
               height: imp.height || null,
               hasUnderbase: imp.hasUnderbase || imp.has_underbase || null,
               stitchCount: imp.stitchCount || imp.stitch_count || null,
-              mockups: (imp.mockups || []).map((m: any) => ({
-                id: m.id,
-                url: m.url,
-                name: m.name || 'Mockup',
-                thumbnail_url: m.thumbnail_url || m.thumbnailUrl || null,
-              })),
+              mockups: imprintMockups,
             };
           });
 
