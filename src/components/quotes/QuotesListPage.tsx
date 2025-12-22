@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,25 +10,15 @@ import {
   Warning,
   ArrowClockwise
 } from '@phosphor-icons/react';
+import { fetchQuotes, Quote } from '@/lib/quote-api';
 
 interface QuotesListPageProps {
   onViewQuote: (quoteId: string) => void;
   onNewQuote: () => void;
 }
 
-// Placeholder quote type until API is ready
-interface QuoteSummary {
-  id: string;
-  quote_number: string;
-  status: 'draft' | 'sent' | 'approved' | 'rejected' | 'expired';
-  customer_name: string;
-  customer_company?: string;
-  total: number;
-  created_at: string;
-}
-
-const getStatusColor = (status: QuoteSummary['status']) => {
-  switch (status) {
+const getStatusColor = (status: string) => {
+  switch (status.toLowerCase()) {
     case 'draft':
       return 'bg-muted text-muted-foreground';
     case 'sent':
@@ -46,11 +36,37 @@ const getStatusColor = (status: QuoteSummary['status']) => {
 
 export function QuotesListPage({ onViewQuote, onNewQuote }: QuotesListPageProps) {
   const [searchInput, setSearchInput] = useState('');
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Placeholder data - will be replaced with API call
-  const quotes: QuoteSummary[] = [];
-  const loading = false;
-  const error = null;
+  const loadQuotes = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await fetchQuotes();
+      setQuotes(data);
+    } catch (err) {
+      setError('Failed to load quotes');
+      console.error('Error fetching quotes:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadQuotes();
+  }, []);
+
+  // Filter quotes by search input
+  const filteredQuotes = quotes.filter((quote) => {
+    const search = searchInput.toLowerCase();
+    return (
+      quote.quote_number?.toLowerCase().includes(search) ||
+      quote.customer_name?.toLowerCase().includes(search) ||
+      quote.status?.toLowerCase().includes(search)
+    );
+  });
 
   if (loading) {
     return (
@@ -82,8 +98,8 @@ export function QuotesListPage({ onViewQuote, onNewQuote }: QuotesListPageProps)
           <CardContent className="pt-5 pb-5 text-center">
             <Warning size={40} className="mx-auto mb-3 text-destructive" />
             <h3 className="text-base font-semibold mb-1">Failed to Load Quotes</h3>
-            <p className="text-xs text-muted-foreground mb-3">Unable to fetch quotes from API</p>
-            <Button variant="outline" size="sm" className="gap-2 h-8">
+            <p className="text-xs text-muted-foreground mb-3">{error}</p>
+            <Button variant="outline" size="sm" className="gap-2 h-8" onClick={loadQuotes}>
               <ArrowClockwise size={16} />
               Try Again
             </Button>
@@ -120,26 +136,32 @@ export function QuotesListPage({ onViewQuote, onNewQuote }: QuotesListPageProps)
         </div>
       </div>
 
-      {quotes.length === 0 ? (
+      {filteredQuotes.length === 0 ? (
         <Card className="bg-card border-border">
           <CardContent className="py-12 text-center">
             <FileText className="w-12 h-12 mx-auto text-muted-foreground mb-4" weight="duotone" />
-            <h3 className="text-lg font-semibold mb-2">No Quotes Yet</h3>
+            <h3 className="text-lg font-semibold mb-2">
+              {quotes.length === 0 ? 'No Quotes Yet' : 'No Matching Quotes'}
+            </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Create your first quote to get started
+              {quotes.length === 0
+                ? 'Create your first quote to get started'
+                : 'Try a different search term'}
             </p>
-            <Button onClick={onNewQuote} className="gap-2">
-              <Plus size={16} weight="bold" />
-              Create Quote
-            </Button>
+            {quotes.length === 0 && (
+              <Button onClick={onNewQuote} className="gap-2">
+                <Plus size={16} weight="bold" />
+                Create Quote
+              </Button>
+            )}
           </CardContent>
         </Card>
       ) : (
         <div className="space-y-2">
-          {quotes.map((quote) => (
+          {filteredQuotes.map((quote) => (
             <Card
               key={quote.id}
-              onClick={() => onViewQuote(quote.id)}
+              onClick={() => onViewQuote(String(quote.id))}
               className="bg-card/50 hover:bg-accent/50 border-border/50 cursor-pointer transition-colors hover:border-border"
             >
               <CardContent className="p-4">
@@ -152,17 +174,15 @@ export function QuotesListPage({ onViewQuote, onNewQuote }: QuotesListPageProps)
                       </Badge>
                     </div>
                     <h3 className="text-base font-semibold text-foreground mt-1">
-                      {quote.customer_name}
+                      {quote.customer_name || 'No Customer'}
                     </h3>
-                    {quote.customer_company && (
-                      <p className="text-sm text-muted-foreground truncate">
-                        {quote.customer_company}
-                      </p>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Created {new Date(quote.created_at).toLocaleDateString()}
+                    </p>
                   </div>
                   <div className="text-right flex-shrink-0">
                     <p className="text-base font-semibold text-foreground">
-                      ${quote.total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      ${parseFloat(quote.total || '0').toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </p>
                   </div>
                 </div>
