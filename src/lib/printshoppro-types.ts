@@ -135,20 +135,20 @@ export function calculateLineItemTotal(item: PSPLineItem): number {
 // Convert ui-v3 API data to PrintShopPro format
 export function convertToLineItem(apiItem: {
   id: number
-  styleNumber?: string
-  description?: string
-  color?: string
+  styleNumber?: string | null
+  description?: string | null
+  color?: string | null
   sizes: Record<string, number>
   totalQuantity: number
   unitCost: number
   totalCost?: number
   imprints?: Array<{
     id: number
-    location?: string
-    decorationType?: string
-    description?: string
-    colorCount?: number
-    colors?: string
+    location?: string | null
+    decorationType?: string | null
+    description?: string | null
+    colorCount?: number | null
+    colors?: string | null
   }>
 }): PSPLineItem {
   return {
@@ -183,7 +183,7 @@ export function convertToLineItem(apiItem: {
   }
 }
 
-function mapDecorationType(apiType?: string): DecorationType {
+function mapDecorationType(apiType?: string | null): DecorationType {
   if (!apiType) return 'screen-print'
   const lower = apiType.toLowerCase()
   if (lower.includes('screen')) return 'screen-print'

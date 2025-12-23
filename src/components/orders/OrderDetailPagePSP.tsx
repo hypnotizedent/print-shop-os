@@ -422,7 +422,7 @@ export function OrderDetailPagePSP({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Tax</span>
-                <span className="font-medium">{formatCurrency(order.taxAmount || 0)}</span>
+                <span className="font-medium">{formatCurrency(order.salesTax || 0)}</span>
               </div>
               <Separator />
               <div className="flex justify-between items-center">

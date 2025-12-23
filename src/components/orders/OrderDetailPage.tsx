@@ -2253,10 +2253,10 @@ interface ImprintCardProps {
   imprint: LineItemImprint;
   onImageClick?: (images: Array<{ url: string; name: string; id: string }>, index: number) => void;
   onDelete?: () => void;
-  isLineItemEditing: boolean;
+  isLineItemEditing?: boolean;
 }
 
-function ImprintCard({ imprint, onImageClick, onDelete, isLineItemEditing }: ImprintCardProps) {
+function ImprintCard({ imprint, onImageClick, onDelete, isLineItemEditing = false }: ImprintCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedImprint, setEditedImprint] = useState(imprint);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
