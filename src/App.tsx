@@ -6,6 +6,7 @@ import { type OrderStatus as ApiOrderStatus } from '@/lib/api-adapter';
 import { Dashboard } from '@/components/dashboard/Dashboard';
 import { OrdersList } from '@/components/orders/OrdersList';
 import { OrderDetailPage } from '@/components/orders/OrderDetailPage';
+import { OrderDetailPagePSP } from '@/components/orders/OrderDetailPagePSP';
 import { QuotesListPage } from '@/components/quotes/QuotesListPage';
 // createQuote import removed - using unified order creation flow
 // QuoteBuilderPage replaced by OrderDetailPage with mode="quote"
@@ -214,16 +215,26 @@ function App() {
           />
         );
       case 'order-detail':
+        // Use new PrintShopPro-style page for viewing existing orders
+        // Keep old page for creating new orders
         return selectedOrderId ? (
-          <OrderDetailPage
-            visualId={selectedOrderId}
-            mode={selectedOrderId === 'new' ? 'create' : 'order'}
-            onViewCustomer={handleViewCustomer}
-            onCreateSuccess={(orderId) => {
-              // After creation, navigate to the new order
-              setSelectedOrderId(orderId);
-            }}
-          />
+          selectedOrderId === 'new' ? (
+            <OrderDetailPage
+              visualId={selectedOrderId}
+              mode="create"
+              onViewCustomer={handleViewCustomer}
+              onCreateSuccess={(orderId) => {
+                setSelectedOrderId(orderId);
+              }}
+            />
+          ) : (
+            <OrderDetailPagePSP
+              visualId={selectedOrderId}
+              mode="order"
+              onBack={() => setCurrentView('orders')}
+              onViewCustomer={handleViewCustomer}
+            />
+          )
         ) : null;
       case 'quotes':
         return (
@@ -233,17 +244,13 @@ function App() {
           />
         );
       case 'quote-builder':
+        // Use new PrintShopPro-style page for viewing quotes
         return selectedQuoteId ? (
-          <OrderDetailPage
+          <OrderDetailPagePSP
             visualId={selectedQuoteId}
             mode="quote"
+            onBack={() => setCurrentView('quotes')}
             onViewCustomer={handleViewCustomer}
-            onConvertSuccess={(orderId) => {
-              // After conversion, navigate to the new order
-              setSelectedOrderId(orderId);
-              setCurrentView('order-detail');
-              setSelectedQuoteId(null);
-            }}
           />
         ) : null;
       case 'customers':

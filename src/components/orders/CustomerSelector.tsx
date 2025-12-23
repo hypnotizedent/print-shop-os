@@ -56,25 +56,33 @@ export function CustomerSelector({ selected, onSelect, onCreateNew }: CustomerSe
   }, []);
 
   if (selected) {
+    // PrintShopPro CustomerSearch.tsx exact design:
+    // Card with emerald avatar, name, company, email + phone, "Change" button
     return (
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <User className="w-4 h-4 text-primary" weight="bold" />
+      <div className="p-4 border border-border rounded-lg bg-card">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3">
+            <div className="bg-emerald-500/20 rounded-full p-2">
+              <User size={20} className="text-emerald-500" weight="bold" />
+            </div>
+            <div>
+              <div className="font-semibold text-foreground">{selected.name}</div>
+              {selected.company && (
+                <div className="text-sm text-muted-foreground">{selected.company}</div>
+              )}
+              <div className="text-sm text-muted-foreground mt-1">
+                {selected.email}
+                {selected.phone && ` • ${selected.phone}`}
+              </div>
+            </div>
           </div>
-          <div>
-            <span className="font-medium text-sm text-foreground">{selected.name}</span>
-            {selected.company && (
-              <span className="text-xs text-muted-foreground ml-2">· {selected.company}</span>
-            )}
-          </div>
+          <button
+            onClick={() => onSelect(null)}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            Change
+          </button>
         </div>
-        <button
-          onClick={() => onSelect(null)}
-          className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-        >
-          Change
-        </button>
       </div>
     );
   }
