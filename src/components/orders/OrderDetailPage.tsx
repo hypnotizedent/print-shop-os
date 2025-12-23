@@ -1900,8 +1900,8 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
               )}
             </div>
 
-            {/* Dates - Right */}
-            <div className="flex items-center gap-2 text-xs flex-wrap">
+            {/* Dates + Quick Stats - Right */}
+            <div className="flex items-center gap-3 text-xs flex-wrap">
               {isCreateMode ? (
                 <div className="flex items-center gap-2">
                   <label className="text-muted-foreground">Due:</label>
@@ -1914,33 +1914,44 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
                 </div>
               ) : (
                 <>
-                  {displayOrder.createdAt && (
-                    <>
+                  {/* Dates */}
+                  <div className="flex items-center gap-2">
+                    {displayOrder.createdAt && (
                       <span className="text-muted-foreground">Created {formatDate(displayOrder.createdAt)}</span>
-                      <span className="text-muted-foreground">·</span>
-                    </>
-                  )}
-                  {displayOrder.dueDate && (
-                    <span
-                      className={`text-muted-foreground ${
-                        new Date(displayOrder.dueDate) < new Date() &&
-                        displayOrder.status.toLowerCase() !== 'complete' &&
-                        displayOrder.status.toLowerCase() !== 'shipped'
-                          ? 'text-destructive font-medium'
-                          : ''
-                      }`}
-                    >
-                      Due {formatDate(displayOrder.dueDate)}
-                    </span>
-                  )}
-                  {displayOrder.customerDueDate && displayOrder.customerDueDate !== displayOrder.dueDate && (
-                    <>
-                      <span className="text-muted-foreground">·</span>
-                      <span className="text-blue-400">
-                        Customer Due {formatDate(displayOrder.customerDueDate)}
+                    )}
+                    {displayOrder.dueDate && (
+                      <>
+                        <span className="text-muted-foreground">·</span>
+                        <span
+                          className={`${
+                            new Date(displayOrder.dueDate) < new Date() &&
+                            displayOrder.status.toLowerCase() !== 'complete' &&
+                            displayOrder.status.toLowerCase() !== 'shipped'
+                              ? 'text-destructive font-medium'
+                              : 'text-muted-foreground'
+                          }`}
+                        >
+                          Due {formatDate(displayOrder.dueDate)}
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Separator */}
+                  <span className="text-border">|</span>
+
+                  {/* Quick Stats: Files + Payment */}
+                  <div className="flex items-center gap-2">
+                    {displayOrder.artworkFiles.length > 0 && (
+                      <span className="text-muted-foreground">
+                        <FileText size={12} className="inline mr-0.5" weight="bold" />
+                        {displayOrder.artworkFiles.length}
                       </span>
-                    </>
-                  )}
+                    )}
+                    <span className={balance > 0 ? 'text-yellow-400' : 'text-green-400'}>
+                      {formatCurrency(paid)}/{formatCurrency(calculatedTotal)}
+                    </span>
+                  </div>
                 </>
               )}
             </div>
@@ -2080,133 +2091,89 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
         </CardContent>
       </Card>
 
-      {/* Payment Summary */}
-      {!isCreateMode && (
-        <Card className="bg-card/50 border-border">
-          <CardHeader className="py-2 px-3">
-            <CardTitle className="text-sm font-medium">Payment Summary</CardTitle>
-          </CardHeader>
-          <CardContent className="py-3">
-            <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm max-w-xs">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="text-right">{formatCurrency(calculatedTotal - displayOrder.salesTax)}</span>
-
-              <span className="text-muted-foreground">Tax</span>
-              <span className="text-right">{formatCurrency(displayOrder.salesTax)}</span>
-
-              <span className="text-muted-foreground font-medium pt-1 border-t border-border">Total</span>
-              <span className="text-right font-medium pt-1 border-t border-border">{formatCurrency(calculatedTotal)}</span>
-
-              <span className="text-muted-foreground">Paid</span>
-              <span className="text-right text-green-400">{formatCurrency(paid)}</span>
-
-              <span className="text-muted-foreground">Outstanding</span>
-              <span className={`text-right ${balance > 0 ? 'text-yellow-400 font-medium' : 'text-green-400'}`}>
-                {formatCurrency(balance)}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Production Files - Collapsible */}
+      {/* Payment + Files Row - Compact */}
       {!isCreateMode && (() => {
         const productionFiles = displayOrder.artworkFiles.filter(f => f.source === 'productionFile');
         const imageFiles = productionFiles.filter(f => isImageFile(f.name));
         const pdfFiles = productionFiles.filter(f => getFileExtension(f.name) === 'pdf');
-        const otherFiles = productionFiles.filter(f => !isImageFile(f.name) && getFileExtension(f.name) !== 'pdf');
-        
-        return productionFiles.length > 0 && (
-          <Card className="bg-card border-border">
-            <CardHeader className="py-2 px-3">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <FileText className="w-3.5 h-3.5" weight="bold" />
-                Production Files ({productionFiles.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 py-3">
-              {/* Image Files with Previews */}
-              {imageFiles.length > 0 && (
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
-                    Images ({imageFiles.length})
-                  </p>
-                  <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1.5">
-                    {imageFiles.map((file, idx) => (
+
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-[200px_1fr] gap-3">
+            {/* Payment Summary - Compact */}
+            <Card className="bg-card/50 border-border">
+              <CardContent className="py-3 px-3">
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Payment</h4>
+                <div className="space-y-1 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>{formatCurrency(calculatedTotal - displayOrder.salesTax)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Tax</span>
+                    <span>{formatCurrency(displayOrder.salesTax)}</span>
+                  </div>
+                  <div className="flex justify-between pt-1 border-t border-border font-medium">
+                    <span>Total</span>
+                    <span>{formatCurrency(calculatedTotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-green-400">
+                    <span>Paid</span>
+                    <span>{formatCurrency(paid)}</span>
+                  </div>
+                  <div className={`flex justify-between ${balance > 0 ? 'text-yellow-400 font-medium' : 'text-green-400'}`}>
+                    <span>Balance</span>
+                    <span>{formatCurrency(balance)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Production Files - Compact */}
+            {productionFiles.length > 0 ? (
+              <Card className="bg-card border-border">
+                <CardContent className="py-3 px-3">
+                  <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1">
+                    <FileText size={12} weight="bold" />
+                    Files ({productionFiles.length})
+                  </h4>
+                  <div className="flex flex-wrap gap-1.5">
+                    {/* Image thumbnails */}
+                    {imageFiles.slice(0, 8).map((file, idx) => (
                       <button
                         key={file.id}
                         onClick={() => openImageModal(imageFiles, idx)}
-                        className="relative group aspect-square rounded-lg overflow-hidden bg-muted border border-border hover:border-primary transition-colors cursor-pointer"
+                        className="w-10 h-10 rounded border border-border bg-muted hover:border-primary transition-colors overflow-hidden"
                       >
-                        <img
-                          src={file.url}
-                          alt={file.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                          }}
-                        />
-                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <FileImage className="w-5 h-5 text-white" weight="bold" />
-                        </div>
+                        <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
                       </button>
                     ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* PDF Files with Thumbnails */}
-              {pdfFiles.length > 0 && (
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
-                    PDFs ({pdfFiles.length})
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {pdfFiles.map((file) => (
-                      <div key={file.id} className="flex flex-col gap-1">
-                        <PdfThumbnail
-                          thumbnailUrl={file.thumbnail_url}
-                          pdfUrl={file.url}
-                          name={file.name}
-                          size="large"
-                        />
-                        <p className="text-[10px] text-muted-foreground text-center truncate max-w-[96px]">
-                          {file.name}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* Other Files */}
-              {otherFiles.length > 0 && (
-                <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">
-                    Other Files ({otherFiles.length})
-                  </p>
-                  <div className="grid gap-1.5">
-                    {otherFiles.map((file) => (
-                      <a
+                    {/* PDF thumbnails */}
+                    {pdfFiles.slice(0, 4).map((file) => (
+                      <PdfThumbnail
                         key={file.id}
-                        href={file.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 p-2 bg-secondary/30 rounded-lg hover:bg-secondary/50 transition-colors"
-                      >
-                        {getFileIcon(file.name)}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{file.name}</p>
-                          <p className="text-xs text-muted-foreground">{getFileExtension(file.name).toUpperCase()} file</p>
-                        </div>
-                      </a>
+                        thumbnailUrl={file.thumbnail_url}
+                        pdfUrl={file.url}
+                        name={file.name}
+                        size="small"
+                      />
                     ))}
+                    {/* Show more indicator */}
+                    {productionFiles.length > 12 && (
+                      <div className="w-10 h-10 rounded border border-border bg-muted flex items-center justify-center text-xs text-muted-foreground">
+                        +{productionFiles.length - 12}
+                      </div>
+                    )}
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="bg-card/50 border-border border-dashed">
+                <CardContent className="py-3 px-3 flex items-center justify-center text-sm text-muted-foreground">
+                  No production files
+                </CardContent>
+              </Card>
+            )}
+          </div>
         );
       })()}
 

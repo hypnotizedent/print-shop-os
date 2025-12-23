@@ -1,7 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import {
   MagnifyingGlass,
   Package,
@@ -36,9 +35,9 @@ interface QuoteResult {
 }
 
 type SearchResult =
-  | { type: 'order'; data: OrderResult }
-  | { type: 'customer'; data: CustomerResult }
-  | { type: 'quote'; data: QuoteResult };
+  | { type: 'order'; data: OrderResult; score: number }
+  | { type: 'customer'; data: CustomerResult; score: number }
+  | { type: 'quote'; data: QuoteResult; score: number };
 
 interface GlobalSearchProps {
   orders: OrderResult[];
@@ -50,6 +49,30 @@ interface GlobalSearchProps {
   placeholder?: string;
   className?: string;
 }
+
+// Scoring function for prioritized matching
+// Higher score = better match
+const getMatchScore = (value: string | null | undefined, term: string): number => {
+  if (!value) return 0;
+  const lowerValue = value.toLowerCase();
+  const lowerTerm = term.toLowerCase();
+
+  // Exact match (highest priority)
+  if (lowerValue === lowerTerm) return 100;
+
+  // Starts with (high priority)
+  if (lowerValue.startsWith(lowerTerm)) return 80;
+
+  // Word starts with (medium-high priority)
+  const words = lowerValue.split(/\s+/);
+  if (words.some(word => word.startsWith(lowerTerm))) return 60;
+
+  // Contains (medium priority)
+  if (lowerValue.includes(lowerTerm)) return 40;
+
+  // No match
+  return 0;
+};
 
 export function GlobalSearch({
   orders,
@@ -67,51 +90,73 @@ export function GlobalSearch({
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Filter results based on search term
+  // Filter and score results based on search term
   const results = useMemo(() => {
     if (!searchTerm.trim()) return [];
 
-    const term = searchTerm.toLowerCase();
+    const term = searchTerm.trim();
     const searchResults: SearchResult[] = [];
 
-    // Search orders
+    // Search orders with scoring
     orders.forEach(order => {
-      if (
-        order.visual_id?.toLowerCase().includes(term) ||
-        order.order_nickname?.toLowerCase().includes(term) ||
-        order.customer_name?.toLowerCase().includes(term)
-      ) {
-        searchResults.push({ type: 'order', data: order });
+      const idScore = getMatchScore(order.visual_id, term);
+      const idWithHashScore = getMatchScore(`#${order.visual_id}`, term);
+      const nicknameScore = getMatchScore(order.order_nickname, term);
+      const customerScore = getMatchScore(order.customer_name, term);
+
+      const maxScore = Math.max(idScore, idWithHashScore, nicknameScore, customerScore);
+
+      if (maxScore > 0) {
+        // Boost order ID exact matches even higher
+        const finalScore = idScore === 100 || idWithHashScore === 100 ? 150 : maxScore;
+        searchResults.push({ type: 'order', data: order, score: finalScore });
       }
     });
 
-    // Search customers
+    // Search customers with scoring
     customers.forEach(customer => {
-      if (
-        customer.name?.toLowerCase().includes(term) ||
-        customer.company?.toLowerCase().includes(term) ||
-        customer.email?.toLowerCase().includes(term)
-      ) {
-        searchResults.push({ type: 'customer', data: customer });
+      const nameScore = getMatchScore(customer.name, term);
+      const companyScore = getMatchScore(customer.company, term);
+      const emailScore = getMatchScore(customer.email, term);
+
+      const maxScore = Math.max(nameScore, companyScore, emailScore);
+
+      if (maxScore > 0) {
+        searchResults.push({ type: 'customer', data: customer, score: maxScore });
       }
     });
 
-    // Search quotes
+    // Search quotes with scoring
     quotes.forEach(quote => {
-      if (
-        quote.quote_number?.toLowerCase().includes(term) ||
-        quote.customer_name?.toLowerCase().includes(term)
-      ) {
-        searchResults.push({ type: 'quote', data: quote });
+      const numberScore = getMatchScore(quote.quote_number, term);
+      const customerScore = getMatchScore(quote.customer_name, term);
+
+      const maxScore = Math.max(numberScore, customerScore);
+
+      if (maxScore > 0) {
+        // Boost quote number exact matches
+        const finalScore = numberScore === 100 ? 150 : maxScore;
+        searchResults.push({ type: 'quote', data: quote, score: finalScore });
       }
     });
 
-    // Limit results - 5 per category max
-    const orderResults = searchResults.filter(r => r.type === 'order').slice(0, 5);
-    const customerResults = searchResults.filter(r => r.type === 'customer').slice(0, 5);
-    const quoteResults = searchResults.filter(r => r.type === 'quote').slice(0, 5);
+    // Sort by score (highest first), then limit per category
+    const sortedOrders = searchResults
+      .filter(r => r.type === 'order')
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
 
-    return [...orderResults, ...customerResults, ...quoteResults];
+    const sortedCustomers = searchResults
+      .filter(r => r.type === 'customer')
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+
+    const sortedQuotes = searchResults
+      .filter(r => r.type === 'quote')
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+
+    return [...sortedOrders, ...sortedCustomers, ...sortedQuotes];
   }, [searchTerm, orders, customers, quotes]);
 
   // Group results by type for display
@@ -226,7 +271,7 @@ export function GlobalSearch({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setTimeout(() => setIsFocused(false), 200)}
           onKeyDown={handleKeyDown}
-          className="pl-9 pr-12 h-9 bg-card border-border"
+          className="pl-9 pr-12 h-9 bg-card border-border text-base"
         />
         <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none hidden sm:inline-flex h-5 items-center gap-0.5 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
           <span className="text-xs">⌘</span>K
@@ -261,12 +306,12 @@ export function GlobalSearch({
                           <Package size={16} className="text-primary flex-shrink-0" weight="duotone" />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-xs text-muted-foreground">#{result.data.visual_id}</span>
+                              <span className="text-sm text-foreground font-medium">#{result.data.visual_id}</span>
                               {result.data.order_nickname && (
-                                <span className="text-sm font-medium truncate">{result.data.order_nickname}</span>
+                                <span className="text-base text-foreground truncate">{result.data.order_nickname}</span>
                               )}
                             </div>
-                            <p className="text-xs text-muted-foreground truncate">
+                            <p className="text-sm text-muted-foreground truncate">
                               {result.data.customer_name}
                             </p>
                           </div>
@@ -300,10 +345,10 @@ export function GlobalSearch({
                         >
                           <User size={16} className="text-emerald-500 flex-shrink-0" weight="duotone" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
+                            <p className="text-base text-foreground font-medium truncate">
                               {result.data.company || result.data.name}
                             </p>
-                            <p className="text-xs text-muted-foreground truncate">
+                            <p className="text-sm text-muted-foreground truncate">
                               {result.data.company ? result.data.name : result.data.email}
                             </p>
                           </div>
@@ -339,10 +384,10 @@ export function GlobalSearch({
                         >
                           <FileText size={16} className="text-blue-500 flex-shrink-0" weight="duotone" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">
+                            <p className="text-base text-foreground font-medium truncate">
                               {result.data.quote_number}
                             </p>
-                            <p className="text-xs text-muted-foreground truncate">
+                            <p className="text-sm text-muted-foreground truncate">
                               {result.data.customer_name} • ${parseFloat(result.data.total || '0').toFixed(2)}
                             </p>
                           </div>
@@ -355,7 +400,7 @@ export function GlobalSearch({
               </>
             ) : (
               <div className="px-3 py-4 text-center">
-                <p className="text-sm text-muted-foreground">No results for "{searchTerm}"</p>
+                <p className="text-base text-muted-foreground">No results for "{searchTerm}"</p>
               </div>
             )}
           </div>
