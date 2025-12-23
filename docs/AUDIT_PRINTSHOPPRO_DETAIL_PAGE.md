@@ -439,11 +439,11 @@ JobDetail.tsx                    →    OrderDetailPage.tsx
 ## Implementation Priority
 
 ### Phase 1: Critical (This Week)
-1. **Status Dropdown** - Replace badge with Select
-2. **Inline Line Item Editing** - No popup modal
-3. **Add/Delete Line Items** - Wire to API
-4. **Add/Delete Imprints** - Wire to API
-5. **More Actions Menu** - Basic dropdown
+1. ~~**Status Dropdown**~~ - ✅ DONE (wired to API)
+2. **Inline Line Item Editing** - Replace popup modal with inline
+3. ~~**Add/Delete Line Items**~~ - ✅ DONE (wired to API)
+4. ~~**Add/Delete Imprints**~~ - ✅ DONE (wired to API)
+5. **More Actions Menu** - Basic dropdown (UI only)
 
 ### Phase 2: Important (Next Week)
 1. **Inline Nickname Edit** - Click to edit
@@ -467,22 +467,23 @@ JobDetail.tsx                    →    OrderDetailPage.tsx
 
 ---
 
-## API Endpoints Required
+## API Endpoints - Ready to Wire
 
-For Phase 1 implementation, these endpoints are needed:
+All endpoints exist in `ronny-ops` dashboard-server.cjs:
 
-```
-PATCH /api/orders/:id/status          # Change order status ❌ MISSING
-POST  /api/orders/:id/line-items      # Add line item ❌ MISSING
-PUT   /api/orders/:id/line-items/:id  # Update line item ❌ MISSING
-DELETE /api/orders/:id/line-items/:id # Remove line item ❌ MISSING
-POST  /api/orders/:id/imprints        # Add imprint ❌ MISSING
-PUT   /api/orders/:id/imprints/:id    # Update imprint ❌ MISSING
-DELETE /api/orders/:id/imprints/:id   # Remove imprint ❌ MISSING
-POST  /api/orders/:id/artwork         # Upload artwork ❌ MISSING
-```
+| Endpoint | API | UI Wired |
+|----------|-----|----------|
+| `POST /api/orders/:id/status` | ✅ Line 3364 | ✅ `handleStatusChange` |
+| `POST /api/orders/:id/line-items` | ✅ Line 3469 | ✅ `handleAddLineItem` |
+| `PUT /api/orders/:id/line-items/:id` | ✅ Line 3545 | ⚠️ Partial (modal save) |
+| `DELETE /api/orders/:id/line-items/:id` | ✅ Line 3635 | ⚠️ Needs verify |
+| `POST /api/orders/:id/imprints` | ✅ Built Dec 22 | ✅ `handleAddImprintForItem` |
+| `PUT /api/orders/:id/imprints/:id` | ✅ Built Dec 22 | ⚠️ Needs inline edit |
+| `DELETE /api/orders/:id/imprints/:id` | ✅ Built Dec 22 | ✅ `handleDeleteImprint` |
+| `POST /api/orders/:id/artwork` | ✅ Built Dec 22 | ❌ No upload UI |
+| `DELETE /api/orders/:id/artwork/:id` | ✅ Built Dec 22 | ❌ No delete UI |
 
-**Note:** All editing endpoints need to be built in `ronny-ops/02_Applications/mint-os/dashboard-api/`
+**Priority:** Focus on UI improvements, not API work
 
 ---
 
@@ -512,19 +513,18 @@ POST  /api/orders/:id/artwork         # Upload artwork ❌ MISSING
 ## Summary
 
 **Total Features Audited:** 45+
-**Currently Implemented in ui-v3:** ~15
-**Missing/Needs Porting:** ~30
+**Currently Implemented in ui-v3:** ~20 (more than expected!)
+**Missing/Needs Porting:** ~25
 
-**Highest Impact Missing Features:**
-1. Inline editing (no popup modals)
-2. Status dropdown (blocked - needs API)
-3. Per-line-item imprints
-4. More Actions menu
-5. Artwork upload
-6. Activity history
+**Already Wired to API:**
+- Status dropdown ✅ `handleStatusChange`
+- Add line item ✅ `handleAddLineItem`
+- Add imprint ✅ `handleAddImprintForItem`
+- Delete imprint ✅ `handleDeleteImprint`
 
-**Blocked by API:**
-- Status change endpoint
-- Line item CRUD endpoints
-- Imprint CRUD endpoints
-- Artwork upload endpoint
+**UI Improvements Needed (APIs Ready):**
+1. Inline line item editing (replace popup modal)
+2. Artwork upload component (drag-drop)
+3. More Actions menu (duplicate, print, archive)
+4. Activity history tab
+5. Better imprint card styling
