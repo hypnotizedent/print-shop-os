@@ -314,12 +314,12 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
             />
           )}
           {contactInfo.company && (
-            <p className="text-muted-foreground mt-1">{contactInfo.company}</p>
+            <p className="text-foreground/70 mt-1">{contactInfo.company}</p>
           )}
         </div>
         <div className="text-right">
           <div className="text-2xl font-semibold">{formatCurrency(totalSpent)}</div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-foreground/70">
             Lifetime value • {customer.orders_count} orders
           </p>
         </div>
@@ -393,7 +393,7 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
                     </div>
                   )}
                   {!contactInfo.email && !contactInfo.phone && !contactInfo.company && (
-                    <p className="text-muted-foreground">No contact info available</p>
+                    <p className="text-foreground/50">No contact info available</p>
                   )}
                 </>
               ) : (
@@ -475,39 +475,51 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
             <CardContent className="text-sm space-y-4">
               {!isEditingAddress ? (
                 <>
-                  {/* View Mode - Billing Address */}
-                  <div>
-                    <p className="text-xs text-muted-foreground uppercase mb-1">Billing Address</p>
-                    {customer?.billingAddress ? (
-                      <>
-                        <p className="text-foreground">{customer.billingAddress.street || '—'}</p>
-                        <p className="text-muted-foreground">
-                          {customer.billingAddress.city}, {customer.billingAddress.state} {customer.billingAddress.zip}
-                        </p>
-                        {customer.billingAddress.country && customer.billingAddress.country !== 'US' && (
-                          <p className="text-muted-foreground">{customer.billingAddress.country}</p>
-                        )}
-                      </>
-                    ) : (
-                      <p className="text-muted-foreground">
-                        {customer?.city && customer?.state
-                          ? `${customer.city}, ${customer.state}`
-                          : customer?.city || customer?.state || '—'}
-                      </p>
-                    )}
-                  </div>
-                  
-                  {/* View Mode - Shipping Address (if different) */}
-                  {customer?.shippingAddress && customer.shippingAddress.street !== customer?.billingAddress?.street && (
+                  {/* View Mode - Show shipping address as primary if no billing */}
+                  {customer?.shippingAddress?.street || customer?.shippingAddress?.city ? (
                     <div>
-                      <p className="text-xs text-muted-foreground uppercase mb-1">Shipping Address</p>
-                      <p className="text-foreground">{customer.shippingAddress.street}</p>
-                      <p className="text-muted-foreground">
-                        {customer.shippingAddress.city}, {customer.shippingAddress.state} {customer.shippingAddress.zip}
+                      <p className="text-xs text-foreground/50 uppercase mb-1">
+                        {customer?.billingAddress?.street ? 'Shipping Address' : 'Address'}
+                      </p>
+                      <p className="text-foreground">{customer.shippingAddress.street || '—'}</p>
+                      <p className="text-foreground/70">
+                        {[customer.shippingAddress.city, customer.shippingAddress.state, customer.shippingAddress.zip].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' $1')}
                       </p>
                       {customer.shippingAddress.country && customer.shippingAddress.country !== 'US' && (
-                        <p className="text-muted-foreground">{customer.shippingAddress.country}</p>
+                        <p className="text-foreground/70">{customer.shippingAddress.country}</p>
                       )}
+                    </div>
+                  ) : customer?.billingAddress?.street || customer?.billingAddress?.city ? (
+                    <div>
+                      <p className="text-xs text-foreground/50 uppercase mb-1">Address</p>
+                      <p className="text-foreground">{customer.billingAddress.street || '—'}</p>
+                      <p className="text-foreground/70">
+                        {[customer.billingAddress.city, customer.billingAddress.state, customer.billingAddress.zip].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' $1')}
+                      </p>
+                      {customer.billingAddress.country && customer.billingAddress.country !== 'US' && (
+                        <p className="text-foreground/70">{customer.billingAddress.country}</p>
+                      )}
+                    </div>
+                  ) : customer?.city || customer?.state ? (
+                    <div>
+                      <p className="text-xs text-foreground/50 uppercase mb-1">Location</p>
+                      <p className="text-foreground/70">
+                        {[customer.city, customer.state].filter(Boolean).join(', ')}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-foreground/50">No address on file</p>
+                  )}
+
+                  {/* Show billing address separately if different from shipping */}
+                  {customer?.billingAddress?.street && customer?.shippingAddress?.street &&
+                   customer.billingAddress.street !== customer.shippingAddress.street && (
+                    <div>
+                      <p className="text-xs text-foreground/50 uppercase mb-1">Billing Address</p>
+                      <p className="text-foreground">{customer.billingAddress.street}</p>
+                      <p className="text-foreground/70">
+                        {[customer.billingAddress.city, customer.billingAddress.state, customer.billingAddress.zip].filter(Boolean).join(', ').replace(/, ([^,]*)$/, ' $1')}
+                      </p>
                     </div>
                   )}
                 </>
@@ -664,16 +676,16 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Orders</span>
+                <span className="text-foreground/70">Total Orders</span>
                 <span className="font-medium">{customer.orders_count}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Total Spent</span>
+                <span className="text-foreground/70">Total Spent</span>
                 <span className="font-medium">{formatCurrency(totalSpent)}</span>
               </div>
               {customer.orders_count > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Avg Order</span>
+                  <span className="text-foreground/70">Avg Order</span>
                   <span className="font-medium">
                     {formatCurrency(totalSpent / customer.orders_count)}
                   </span>
@@ -681,7 +693,7 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
               )}
               {customer.created_at && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Customer Since</span>
+                  <span className="text-foreground/70">Customer Since</span>
                   <span>{formatDate(customer.created_at)}</span>
                 </div>
               )}
@@ -698,8 +710,8 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
             <CardContent>
               {orders.length === 0 ? (
                 <div className="py-8 text-center">
-                  <Package className="w-12 h-12 mx-auto text-muted-foreground mb-3" weight="duotone" />
-                  <p className="text-muted-foreground text-sm">No orders found</p>
+                  <Package className="w-12 h-12 mx-auto text-foreground/30 mb-3" weight="duotone" />
+                  <p className="text-foreground/50 text-sm">No orders found</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -714,12 +726,12 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
                           <div className="flex items-center gap-2">
                             <span className="font-medium">#{order.visual_id}</span>
                             {order.order_nickname && (
-                              <span className="text-muted-foreground text-sm truncate max-w-[150px]">
+                              <span className="text-foreground/70 text-sm truncate max-w-[150px]">
                                 {order.order_nickname}
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-sm text-foreground/70">
                             {order.due_date ? formatDate(order.due_date) : 'No due date'}
                           </p>
                         </div>

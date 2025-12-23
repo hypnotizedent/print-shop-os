@@ -1576,8 +1576,8 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
     setModalOpen(true);
   };
 
-  const handleAddLineItem = async (lineItem: Partial<OrderDetailLineItem>) => {
-    if (!order) return;
+  const handleAddLineItem = async (lineItem: Partial<OrderDetailLineItem>): Promise<boolean> => {
+    if (!order) return false;
 
     try {
       const response = await fetch(`https://mintprints-api.ronny.works/api/orders/${order.id}/line-items`, {
@@ -1595,9 +1595,11 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
 
       toast.success(`Line item "${lineItem.description}" added`);
       refetch();
+      return true;
     } catch (err) {
       toast.error('Failed to add line item');
       console.error('Add line item error:', err);
+      return false;
     }
   };
 
@@ -1719,247 +1721,169 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
   const balance = displayOrder.amountOutstanding;
   const paid = calculatedTotal - displayOrder.amountOutstanding;
 
+  // Count files for compact display
+  const productionFiles = displayOrder.artworkFiles?.filter(f => f.source === 'productionFile') || [];
+  const filesCount = productionFiles.length;
+
   return (
     <div className="space-y-3">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-semibold tracking-tight">
-            {isCreateMode ? (
-              <>
-                New Order
-                {newOrder.nickname && (
-                  <span className="text-muted-foreground"> · {newOrder.nickname}</span>
-                )}
-              </>
-            ) : (
-              <>
-                #{displayOrder.orderNumber}
-                {displayOrder.orderNickname && (
-                  <span className="text-muted-foreground"> · {displayOrder.orderNickname}</span>
-                )}
-                <span className="text-[10px] text-emerald-500 ml-2 font-normal">● Updated</span>
-              </>
+      {/* Compact Header - 2 Lines */}
+      <div className="bg-card/50 border border-border rounded-lg p-3">
+        {/* Line 1: Order# | Status | Total | Balance | Actions */}
+        <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="flex items-center gap-3 min-w-0">
+            <h2 className="text-lg font-semibold tracking-tight whitespace-nowrap">
+              {isCreateMode ? 'New Order' : `#${displayOrder.orderNumber}`}
+            </h2>
+            {!isCreateMode && displayOrder.orderNickname && (
+              <span className="text-foreground/70 truncate">{displayOrder.orderNickname}</span>
             )}
-          </h2>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <div className="flex items-center gap-2 justify-end mb-0.5">
-              <Select
-                value={displayOrder.status}
-                onValueChange={isCreateMode ? (v) => setNewOrder(prev => ({ ...prev, status: v })) : handleStatusChange}
-                disabled={statusUpdating}
-              >
-                <SelectTrigger
-                  className={`h-7 w-[160px] text-xs font-medium uppercase tracking-wide border-0 ${getAPIStatusColor(displayOrder.status)}`}
-                  size="sm"
-                >
-                  <SelectValue>
-                    {statusUpdating ? 'Updating...' : getAPIStatusLabel(displayOrder.status)}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUS_OPTIONS.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value}
-                      className="text-xs"
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="text-xl font-semibold">{formatCurrency(calculatedTotal)}</div>
-            </div>
-            {!isCreateMode && (
-              <p className="text-xs text-muted-foreground">
-                Balance:{' '}
-                <span className={balance > 0 ? 'text-yellow-400' : 'text-green-400'}>
-                  {formatCurrency(balance)}
-                </span>
-              </p>
+            {isCreateMode && newOrder.nickname && (
+              <span className="text-foreground/70 truncate">{newOrder.nickname}</span>
             )}
           </div>
-          {isCreateMode && (
-            <Button
-              onClick={handleSaveDraft}
-              disabled={saving || !newOrder.customer}
-              className="bg-primary hover:bg-primary/90"
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <Select
+              value={displayOrder.status}
+              onValueChange={isCreateMode ? (v) => setNewOrder(prev => ({ ...prev, status: v })) : handleStatusChange}
+              disabled={statusUpdating}
             >
-              {saving ? (
-                <>
-                  <CircleNotch size={16} className="animate-spin mr-2" />
-                  Saving...
-                </>
-              ) : (
-                'Save Order'
-              )}
-            </Button>
-          )}
-          {isQuote && !isCreateMode && (
-            <Button
-              onClick={handleConvertToOrder}
-              disabled={converting}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              {converting ? 'Converting...' : 'Convert to Order'}
-            </Button>
-          )}
-          {!isCreateMode && (
-            <MoreActionsMenu
-              onDuplicate={() => toast.info('Duplicate order coming soon')}
-              onPrint={() => window.print()}
-              onEmail={() => {
-                if (displayOrder.customer.email) {
-                  window.location.href = `mailto:${displayOrder.customer.email}?subject=Order ${displayOrder.orderNumber}`;
-                } else {
-                  toast.error('No customer email on file');
-                }
-              }}
-              onArchive={() => toast.info('Archive coming soon')}
-              onDelete={() => {
-                if (confirm('Are you sure you want to delete this order? This cannot be undone.')) {
-                  toast.info('Delete order coming soon');
-                }
-              }}
-            />
-          )}
+              <SelectTrigger
+                className={`h-7 w-[140px] text-xs font-medium uppercase tracking-wide border-0 ${getAPIStatusColor(displayOrder.status)}`}
+                size="sm"
+              >
+                <SelectValue>
+                  {statusUpdating ? 'Updating...' : getAPIStatusLabel(displayOrder.status)}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} value={option.value} className="text-xs">
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="text-lg font-semibold">{formatCurrency(calculatedTotal)}</div>
+            {!isCreateMode && (
+              <span className={`text-sm ${balance > 0 ? 'text-yellow-400' : 'text-green-400'}`}>
+                Bal: {formatCurrency(balance)}
+              </span>
+            )}
+            {isCreateMode && (
+              <Button
+                onClick={handleSaveDraft}
+                disabled={saving || !newOrder.customer}
+                size="sm"
+                className="bg-primary hover:bg-primary/90 h-7"
+              >
+                {saving ? <CircleNotch size={14} className="animate-spin" /> : 'Save'}
+              </Button>
+            )}
+            {isQuote && !isCreateMode && (
+              <Button
+                onClick={handleConvertToOrder}
+                disabled={converting}
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white h-7"
+              >
+                {converting ? 'Converting...' : 'Convert'}
+              </Button>
+            )}
+            {!isCreateMode && (
+              <MoreActionsMenu
+                onDuplicate={() => toast.info('Duplicate order coming soon')}
+                onPrint={() => window.print()}
+                onEmail={() => {
+                  if (displayOrder.customer.email) {
+                    window.location.href = `mailto:${displayOrder.customer.email}?subject=Order ${displayOrder.orderNumber}`;
+                  } else {
+                    toast.error('No customer email on file');
+                  }
+                }}
+                onArchive={() => toast.info('Archive coming soon')}
+                onDelete={() => {
+                  if (confirm('Are you sure you want to delete this order? This cannot be undone.')) {
+                    toast.info('Delete order coming soon');
+                  }
+                }}
+              />
+            )}
+          </div>
+        </div>
+
+        {/* Line 2: Customer · Company · Email · Files · Paid · Due */}
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <div className="flex items-center gap-2 text-foreground/70 min-w-0 flex-wrap">
+            {isCreateMode && !newOrder.customer ? (
+              <CustomerSelector
+                selected={newOrder.customer}
+                onSelect={(customer) => setNewOrder(prev => ({ ...prev, customer }))}
+                onCreateNew={() => setShowCreateCustomer(true)}
+              />
+            ) : (
+              <>
+                <button
+                  onClick={() => onViewCustomer(String(displayOrder.customer.id))}
+                  className="font-medium text-foreground hover:text-primary hover:underline"
+                  disabled={isCreateMode}
+                >
+                  {displayOrder.customer.name}
+                </button>
+                {displayOrder.customer.company && (
+                  <>
+                    <span className="text-foreground/40">·</span>
+                    <span className="truncate max-w-[150px]">{displayOrder.customer.company}</span>
+                  </>
+                )}
+                {displayOrder.customer.email && (
+                  <>
+                    <span className="text-foreground/40">·</span>
+                    <a href={`mailto:${displayOrder.customer.email}`} className="hover:text-foreground truncate max-w-[180px]">
+                      {displayOrder.customer.email}
+                    </a>
+                  </>
+                )}
+                {!isCreateMode && filesCount > 0 && (
+                  <>
+                    <span className="text-foreground/40">·</span>
+                    <span className="flex items-center gap-1">
+                      <FileText size={12} />
+                      {filesCount} files
+                    </span>
+                  </>
+                )}
+                {!isCreateMode && paid > 0 && (
+                  <>
+                    <span className="text-foreground/40">·</span>
+                    <span className="text-green-400">Paid: {formatCurrency(paid)}</span>
+                  </>
+                )}
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-2 text-xs text-foreground/50 flex-shrink-0">
+            {isCreateMode ? (
+              <div className="flex items-center gap-2">
+                <label>Due:</label>
+                <Input
+                  type="date"
+                  value={newOrder.dueDate}
+                  onChange={(e) => setNewOrder(prev => ({ ...prev, dueDate: e.target.value }))}
+                  className="h-6 w-auto text-xs"
+                />
+              </div>
+            ) : displayOrder.dueDate && (
+              <span className={new Date(displayOrder.dueDate) < new Date() && !['complete', 'shipped'].includes(displayOrder.status.toLowerCase()) ? 'text-destructive font-medium' : ''}>
+                Due {formatDate(displayOrder.dueDate)}
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Minimal Info Bar - Customer and Dates */}
+      {/* Line Items Card */}
       <Card className="bg-card/50 border-border">
-        <CardHeader className="py-2 px-3">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            {/* Customer Info - Left */}
-            <div className="flex-1 min-w-0">
-              {isCreateMode && !newOrder.customer ? (
-                <CustomerSelector
-                  selected={newOrder.customer}
-                  onSelect={(customer) => setNewOrder(prev => ({ ...prev, customer }))}
-                  onCreateNew={() => setShowCreateCustomer(true)}
-                />
-              ) : (
-                <>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <button
-                      onClick={() => onViewCustomer(String(displayOrder.customer.id))}
-                      className="font-semibold text-sm text-foreground hover:text-primary hover:underline text-left"
-                      disabled={isCreateMode}
-                    >
-                      {displayOrder.customer.name}
-                    </button>
-                    {displayOrder.customer.company && (
-                      <>
-                        <span className="text-muted-foreground text-xs">·</span>
-                        <span className="text-muted-foreground text-xs">{displayOrder.customer.company}</span>
-                      </>
-                    )}
-                    {isCreateMode ? (
-                      <button
-                        onClick={() => setNewOrder(prev => ({ ...prev, customer: null }))}
-                        className="p-1 text-muted-foreground hover:text-foreground transition-colors"
-                        title="Change customer"
-                      >
-                        <X size={12} weight="bold" />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleEditCustomer}
-                        className="p-1 text-muted-foreground hover:text-foreground transition-colors"
-                        title="Edit customer"
-                      >
-                        <PencilSimple size={12} weight="bold" />
-                      </button>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5 flex-wrap">
-                    {displayOrder.customer.email && (
-                      <a href={`mailto:${displayOrder.customer.email}`} className="hover:text-foreground">
-                        {displayOrder.customer.email}
-                      </a>
-                    )}
-                    {displayOrder.customer.email && displayOrder.customer.phone && <span>·</span>}
-                    {displayOrder.customer.phone && (
-                      <a href={`tel:${displayOrder.customer.phone}`} className="hover:text-foreground">
-                        {displayOrder.customer.phone}
-                      </a>
-                    )}
-                    {(displayOrder.customer.city || displayOrder.customer.state) && (
-                      <>
-                        {(displayOrder.customer.email || displayOrder.customer.phone) && <span>·</span>}
-                        <span>
-                          {[displayOrder.customer.city, displayOrder.customer.state].filter(Boolean).join(', ')}
-                        </span>
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Dates + Quick Stats - Right */}
-            <div className="flex items-center gap-3 text-xs flex-wrap">
-              {isCreateMode ? (
-                <div className="flex items-center gap-2">
-                  <label className="text-muted-foreground">Due:</label>
-                  <Input
-                    type="date"
-                    value={newOrder.dueDate}
-                    onChange={(e) => setNewOrder(prev => ({ ...prev, dueDate: e.target.value }))}
-                    className="h-7 w-auto text-xs"
-                  />
-                </div>
-              ) : (
-                <>
-                  {/* Dates */}
-                  <div className="flex items-center gap-2">
-                    {displayOrder.createdAt && (
-                      <span className="text-muted-foreground">Created {formatDate(displayOrder.createdAt)}</span>
-                    )}
-                    {displayOrder.dueDate && (
-                      <>
-                        <span className="text-muted-foreground">·</span>
-                        <span
-                          className={`${
-                            new Date(displayOrder.dueDate) < new Date() &&
-                            displayOrder.status.toLowerCase() !== 'complete' &&
-                            displayOrder.status.toLowerCase() !== 'shipped'
-                              ? 'text-destructive font-medium'
-                              : 'text-muted-foreground'
-                          }`}
-                        >
-                          Due {formatDate(displayOrder.dueDate)}
-                        </span>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Separator */}
-                  <span className="text-border">|</span>
-
-                  {/* Quick Stats: Files + Payment */}
-                  <div className="flex items-center gap-2">
-                    {displayOrder.artworkFiles.length > 0 && (
-                      <span className="text-muted-foreground">
-                        <FileText size={12} className="inline mr-0.5" weight="bold" />
-                        {displayOrder.artworkFiles.length}
-                      </span>
-                    )}
-                    <span className={balance > 0 ? 'text-yellow-400' : 'text-green-400'}>
-                      {formatCurrency(paid)}/{formatCurrency(calculatedTotal)}
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </CardHeader>
-        
-        <Separator className="my-0" />
-        
         <CardContent className="pt-4 pb-4">
           {/* Line Items Section Header */}
           <div className="flex items-center justify-between mb-3">
@@ -2030,11 +1954,11 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
                     placeholder="Unit Price"
                     value={inlineNewItem.unitCost || ''}
                     onChange={(e) => setInlineNewItem({ ...inlineNewItem, unitCost: parseFloat(e.target.value) || 0 })}
-                    onKeyDown={(e) => {
+                    onKeyDown={async (e) => {
                       if (e.key === 'Escape') setInlineNewItem(null);
                       if (e.key === 'Enter' && inlineNewItem.description) {
-                        handleAddLineItem(inlineNewItem);
-                        setInlineNewItem(null);
+                        const success = await handleAddLineItem(inlineNewItem);
+                        if (success) setInlineNewItem(null);
                       }
                     }}
                     className="bg-background"
@@ -2045,9 +1969,9 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
                     size="sm"
                     className="h-8 gap-1"
                     disabled={!inlineNewItem.description}
-                    onClick={() => {
-                      handleAddLineItem(inlineNewItem);
-                      setInlineNewItem(null);
+                    onClick={async () => {
+                      const success = await handleAddLineItem(inlineNewItem);
+                      if (success) setInlineNewItem(null);
                     }}
                   >
                     <Check size={14} weight="bold" />
@@ -2093,7 +2017,6 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
 
       {/* Payment + Files Row - Compact */}
       {!isCreateMode && (() => {
-        const productionFiles = displayOrder.artworkFiles.filter(f => f.source === 'productionFile');
         const imageFiles = productionFiles.filter(f => isImageFile(f.name));
         const pdfFiles = productionFiles.filter(f => getFileExtension(f.name) === 'pdf');
 

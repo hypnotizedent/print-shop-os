@@ -117,11 +117,11 @@ export function CustomersListPage({ onViewCustomer }: CustomersListPageProps) {
       <div className="space-y-4">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Customers</h2>
-          <p className="text-muted-foreground text-xs mt-0.5">Loading customers...</p>
+          <p className="text-foreground/50 text-xs mt-0.5">Loading customers...</p>
         </div>
-        <div className="animate-pulse space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-16 bg-card rounded-lg border border-border" />
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {[...Array(9)].map((_, i) => (
+            <div key={i} className="h-32 bg-card rounded-lg border border-border animate-pulse" />
           ))}
         </div>
       </div>
@@ -246,14 +246,14 @@ export function CustomersListPage({ onViewCustomer }: CustomersListPageProps) {
       {customers.length === 0 ? (
         <Card className="bg-card border-border">
           <CardContent className="py-8 text-center">
-            <Users className="w-10 h-10 mx-auto text-muted-foreground mb-3" weight="duotone" />
-            <p className="text-sm text-muted-foreground">
+            <Users className="w-10 h-10 mx-auto text-foreground/30 mb-3" weight="duotone" />
+            <p className="text-sm text-foreground/50">
               {searchQuery ? 'No customers match your search' : 'No customers found'}
             </p>
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
           {customers.map((customer) => {
             const lastOrderDate = customer.last_order_date
               ? formatDistanceToNow(new Date(customer.last_order_date), { addSuffix: true })
@@ -263,33 +263,47 @@ export function CustomersListPage({ onViewCustomer }: CustomersListPageProps) {
               <Card
                 key={customer.id}
                 onClick={() => onViewCustomer(String(customer.id))}
-                className="bg-card/50 hover:bg-accent/50 border-border/50 cursor-pointer transition-colors hover:border-border"
+                className="bg-card/50 hover:bg-accent/50 border-border/50 cursor-pointer transition-all hover:border-border hover:shadow-md"
               >
                 <CardContent className="p-4">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-base font-semibold text-foreground truncate">
-                          {customer.name}
-                        </h3>
-                        <Badge className={`${getTierColor(customer.tier)} uppercase text-[10px] font-semibold px-1.5 py-0 h-4`}>
-                          {customer.tier}
-                        </Badge>
-                      </div>
+                  {/* Header: Name + Tier */}
+                  <div className="flex items-start justify-between gap-2 mb-3">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-base font-semibold text-foreground truncate">
+                        {customer.name}
+                      </h3>
                       {customer.company && (
-                        <p className="text-sm text-muted-foreground truncate mt-0.5">
+                        <p className="text-sm text-foreground/70 truncate">
                           {customer.company}
                         </p>
                       )}
                     </div>
+                    {customer.tier && (
+                      <Badge className={`${getTierColor(customer.tier)} uppercase text-[10px] font-semibold px-1.5 py-0 h-4 flex-shrink-0`}>
+                        {customer.tier}
+                      </Badge>
+                    )}
+                  </div>
 
-                    <div className="text-right flex-shrink-0">
-                      <p className="text-base font-semibold text-foreground">
-                        ${customer.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {/* Stats Row */}
+                  <div className="flex items-center justify-between pt-3 border-t border-border/50">
+                    <div>
+                      <p className="text-lg font-semibold text-foreground">
+                        ${customer.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        {customer.orders_count} order{customer.orders_count !== 1 ? 's' : ''} · {lastOrderDate}
+                      <p className="text-xs text-foreground/50">revenue</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-lg font-semibold text-foreground">
+                        {customer.orders_count}
                       </p>
+                      <p className="text-xs text-foreground/50">orders</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-foreground/70">
+                        {lastOrderDate}
+                      </p>
+                      <p className="text-xs text-foreground/50">last order</p>
                     </div>
                   </div>
                 </CardContent>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Package, Users, ChartLine, ArrowLeft, FileText } from '@phosphor-icons/react';
+import { Package, Users, ChartLine, ArrowLeft, FileText, Sparkle } from '@phosphor-icons/react';
 import { Transaction, View, OrderStatus, ImprintMethod } from '@/lib/types';
 import { useOrders, useCustomers } from '@/lib/hooks';
 import { type OrderStatus as ApiOrderStatus } from '@/lib/api-adapter';
@@ -273,17 +273,9 @@ function App() {
       {/* Sidebar */}
       <aside className="w-52 border-r border-border bg-card/30 flex flex-col fixed h-screen">
         <div className="px-3 py-3 border-b border-border">
-          <div className="flex items-center gap-2.5">
-            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 2L10 10L2 16L10 22L16 30L22 22L30 16L22 10L16 2Z" fill="#10B981"/>
-              <circle cx="24" cy="8" r="2.5" fill="#10B981"/>
-              <circle cx="8" cy="24" r="1.5" fill="#10B981"/>
-              <circle cx="26" cy="6" r="1" fill="#10B981"/>
-            </svg>
-            <div className="flex flex-col">
-              <span className="font-bold text-lg tracking-wide leading-none">MINT PRINTS</span>
-              <span className="text-[8px] text-muted-foreground mt-0.5">v2.9.2</span>
-            </div>
+          <div className="flex items-center gap-2">
+            <Sparkle size={28} weight="fill" className="text-primary" />
+            <span className="font-bold text-lg tracking-tight">MINT PRINTS</span>
           </div>
         </div>
         

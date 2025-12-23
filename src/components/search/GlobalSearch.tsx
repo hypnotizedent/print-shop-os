@@ -64,11 +64,13 @@ const getMatchScore = (value: string | null | undefined, term: string): number =
   if (lowerValue.startsWith(lowerTerm)) return 80;
 
   // Word starts with (medium-high priority)
+  // e.g., "John Smith" matches "S" because "Smith" starts with "S"
   const words = lowerValue.split(/\s+/);
   if (words.some(word => word.startsWith(lowerTerm))) return 60;
 
-  // Contains (medium priority)
-  if (lowerValue.includes(lowerTerm)) return 40;
+  // Contains (medium priority) - only for 2+ character searches
+  // This prevents "F" from matching "Sanford" or "Lafi"
+  if (term.length >= 2 && lowerValue.includes(lowerTerm)) return 40;
 
   // No match
   return 0;
@@ -306,12 +308,12 @@ export function GlobalSearch({
                           <Package size={16} className="text-primary flex-shrink-0" weight="duotone" />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm text-foreground font-medium">#{result.data.visual_id}</span>
+                              <span className="text-base text-foreground font-medium">#{result.data.visual_id}</span>
                               {result.data.order_nickname && (
                                 <span className="text-base text-foreground truncate">{result.data.order_nickname}</span>
                               )}
                             </div>
-                            <p className="text-sm text-muted-foreground truncate">
+                            <p className="text-sm text-foreground/70 truncate">
                               {result.data.customer_name}
                             </p>
                           </div>
@@ -348,7 +350,7 @@ export function GlobalSearch({
                             <p className="text-base text-foreground font-medium truncate">
                               {result.data.company || result.data.name}
                             </p>
-                            <p className="text-sm text-muted-foreground truncate">
+                            <p className="text-sm text-foreground/70 truncate">
                               {result.data.company ? result.data.name : result.data.email}
                             </p>
                           </div>
@@ -387,7 +389,7 @@ export function GlobalSearch({
                             <p className="text-base text-foreground font-medium truncate">
                               {result.data.quote_number}
                             </p>
-                            <p className="text-sm text-muted-foreground truncate">
+                            <p className="text-sm text-foreground/70 truncate">
                               {result.data.customer_name} • ${parseFloat(result.data.total || '0').toFixed(2)}
                             </p>
                           </div>

@@ -652,7 +652,7 @@ export function useCustomersList(options?: {
 }
 
 // =============================================================================
-// useCustomerDetail - Fetch single customer by searching
+// useCustomerDetail - Fetch single customer by ID
 // =============================================================================
 
 export function useCustomerDetail(customerId: string | null) {
@@ -674,17 +674,21 @@ export function useCustomerDetail(customerId: string | null) {
     setCustomer(null)
     setOrders([])
     try {
-      // Fetch all customers and find by ID (since there's no direct endpoint)
-      const response = await fetch(`${API_BASE_URL}/api/customers?limit=5000`)
+      // Fetch customer detail directly by ID
+      const response = await fetch(`${API_BASE_URL}/api/customers/${customerId}`)
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`)
       }
       const data = await response.json()
+      const found = data.customer
 
-      const found = (data.customers || []).find((c: any) => String(c.id) === customerId)
       if (!found) {
         throw new Error('Customer not found')
       }
+
+      // Map shipping_address fields (API uses address1/address2/zipCode)
+      const shippingAddr = found.shipping_address
+      const billingAddr = found.billing_address
 
       const customerData: CustomerListItem = {
         id: found.id,
@@ -692,21 +696,21 @@ export function useCustomerDetail(customerId: string | null) {
         email: found.email || null,
         phone: found.phone || null,
         company: found.company || null,
-        city: found.city || null,
-        state: found.state || null,
-        billingAddress: found.billingAddress || found.billing_address ? {
-          street: found.billingAddress?.street || found.billing_address?.street || '',
-          city: found.billingAddress?.city || found.billing_address?.city || '',
-          state: found.billingAddress?.state || found.billing_address?.state || '',
-          zip: found.billingAddress?.zip || found.billing_address?.zip || '',
-          country: found.billingAddress?.country || found.billing_address?.country || undefined,
+        city: found.city || shippingAddr?.city || null,
+        state: found.state || shippingAddr?.state || null,
+        billingAddress: billingAddr ? {
+          street: billingAddr.address1 || billingAddr.street || '',
+          city: billingAddr.city || '',
+          state: billingAddr.state || billingAddr.stateIso || '',
+          zip: billingAddr.zipCode || billingAddr.zip || '',
+          country: billingAddr.country || undefined,
         } : undefined,
-        shippingAddress: found.shippingAddress || found.shipping_address ? {
-          street: found.shippingAddress?.street || found.shipping_address?.street || '',
-          city: found.shippingAddress?.city || found.shipping_address?.city || '',
-          state: found.shippingAddress?.state || found.shipping_address?.state || '',
-          zip: found.shippingAddress?.zip || found.shipping_address?.zip || '',
-          country: found.shippingAddress?.country || found.shipping_address?.country || undefined,
+        shippingAddress: shippingAddr ? {
+          street: shippingAddr.address1 || shippingAddr.street || '',
+          city: shippingAddr.city || '',
+          state: shippingAddr.state || shippingAddr.stateIso || '',
+          zip: shippingAddr.zipCode || shippingAddr.zip || '',
+          country: shippingAddr.country || undefined,
         } : undefined,
         orders_count: found.orders_count || 0,
         total_revenue: parseFloat(found.total_revenue || found.totalRevenue || '0') || 0,
