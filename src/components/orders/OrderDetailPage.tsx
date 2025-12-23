@@ -1199,14 +1199,21 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
               const editedSizes = editedItems[String(item.id)] || {};
               const currentSizes = { ...sizes, ...editedSizes };
               
-              const totalQty = visibleSizeColumns.reduce((sum, col) => {
+              // Calculate total qty from visible size columns (for editing scenarios)
+              const sizeColumnsQty = visibleSizeColumns.reduce((sum, col) => {
                 const sizeKey = `size-${col.label}`;
                 const qty = sizeKey in editedSizes ? Number(editedSizes[sizeKey as keyof typeof editedSizes] || 0) : sizes[col.label];
                 return sum + qty;
               }, 0);
-              
+
+              // Use item.totalQuantity as authoritative source, fallback to size columns sum
+              const totalQty = item.totalQuantity || sizeColumnsQty;
+
               const unitCost = getItemValue(item, 'unitCost');
-              const totalCost = totalQty * Number(unitCost);
+              // Use item.totalCost if available, otherwise calculate from qty × price
+              const totalCost = item.totalCost > 0
+                ? item.totalCost
+                : totalQty * Number(unitCost);
               const isExpanded = expandedItems.has(item.id);
               const hasImprints = item.imprints && item.imprints.length > 0;
               
