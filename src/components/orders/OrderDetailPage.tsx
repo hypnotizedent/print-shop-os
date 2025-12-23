@@ -55,7 +55,7 @@ import { SizeBreakdown } from '@/lib/types';
 import { ImageModal } from '@/components/shared/ImageModal';
 import { ManageColumnsModal, ColumnConfig, DEFAULT_COLUMN_CONFIG } from './ManageColumnsModal';
 import { CustomerSelector } from './CustomerSelector';
-import { ImprintCard } from './ImprintCard';
+// ImprintCard is defined locally in this file (line ~2249)
 import { MoreActionsMenu } from './MoreActionsMenu';
 import { toast } from 'sonner';
 
@@ -375,7 +375,7 @@ function MockupUploadDialog({ open, onOpenChange, onUpload, title }: MockupUploa
 interface ArtworkUploadProps {
   orderId: number;
   lineItemId?: number;
-  currentMockup?: { id: string; url: string; thumbnail_url?: string; name?: string } | null;
+  currentMockup?: { id: string; url: string; thumbnail_url?: string | null; name?: string } | null;
   onUploadComplete: () => void;
   onImageClick?: (images: Array<{ url: string; name: string; id: string }>, index: number) => void;
   size?: 'sm' | 'md';
@@ -529,7 +529,16 @@ function AddLineItemDialog({ open, onOpenChange, onAdd }: AddLineItemDialogProps
       unitCost: parseFloat(unitCost) || 0,
       totalQuantity: 0,
       totalCost: 0,
-      sizes: { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, xxxl: 0, xxxxl: 0, xxxxxl: 0, other: 0 },
+      sizes: {
+        // Baby/Toddler
+        '6m': 0, '12m': 0, '18m': 0, '24m': 0, '2t': 0, '3t': 0, '4t': 0, '5t': 0,
+        // Youth
+        yxs: 0, ys: 0, ym: 0, yl: 0, yxl: 0,
+        // Adult
+        xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, xxxl: 0, xxxxl: 0, xxxxxl: 0, xxxxxx: 0,
+        // Other
+        other: 0
+      },
       imprints: []
     });
     setDescription('');
@@ -2243,10 +2252,11 @@ interface LineItemCardProps {
 interface ImprintCardProps {
   imprint: LineItemImprint;
   onImageClick?: (images: Array<{ url: string; name: string; id: string }>, index: number) => void;
+  onDelete?: () => void;
   isLineItemEditing: boolean;
 }
 
-function ImprintCard({ imprint, onImageClick, isLineItemEditing }: ImprintCardProps) {
+function ImprintCard({ imprint, onImageClick, onDelete, isLineItemEditing }: ImprintCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedImprint, setEditedImprint] = useState(imprint);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
