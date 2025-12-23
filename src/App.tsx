@@ -285,7 +285,7 @@ function App() {
             </svg>
             <div className="flex flex-col">
               <span className="font-bold text-lg tracking-wide leading-none">MINT PRINTS</span>
-              <span className="text-[8px] text-muted-foreground mt-0.5">v2.4.0</span>
+              <span className="text-[8px] text-muted-foreground mt-0.5">v2.7.0</span>
             </div>
           </div>
         </div>
