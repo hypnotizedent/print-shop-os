@@ -223,6 +223,7 @@ POST  /api/customers                  # Create customer
 
 | Doc | Purpose |
 |-----|---------|
+| docs/AUDIT_PRINTSHOPPRO_DETAIL_PAGE.md | **PrintShopPro feature extraction for porting** |
 | docs/AUDIT_UI_WIRING_GAPS.md | **UI elements needing API wiring** |
 | docs/AUDIT_ORDER_DETAIL_FEATURES.md | Feature audit & mockup investigation |
 | docs/ROADMAP_v2x_WIRE_APIS.md | Version roadmap |
