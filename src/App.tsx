@@ -68,13 +68,6 @@ function App() {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
 
-  console.log('App loaded - Spark UI v2.9.2', {
-    ordersCount: apiOrders?.length || 0,
-    customersCount: apiCustomers?.length || 0,
-    ordersError,
-    customersError
-  });
-
   // Show loading state while data is being fetched
   if (ordersLoading || customersLoading) {
     return (

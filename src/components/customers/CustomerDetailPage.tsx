@@ -161,7 +161,6 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
   }, [isEditingAddress, shippingSameAsBilling]);
 
   const handleSaveContact = () => {
-    console.log('Saving contact info:', contactInfo);
     alert('Note: Contact changes are displayed but not yet persisted to the database. API integration needed.');
     setIsEditingContact(false);
   };
@@ -179,10 +178,6 @@ export function CustomerDetailPage({ customerId, onViewOrder }: CustomerDetailPa
   };
 
   const handleSaveAddress = () => {
-    console.log('Saving addresses:', { 
-      billingAddress, 
-      shippingAddress: shippingSameAsBilling ? billingAddress : shippingAddress 
-    });
     alert('Note: Address changes are displayed but not yet persisted to the database. API integration needed.');
     setIsEditingAddress(false);
   };

@@ -69,7 +69,6 @@ export function QuoteBuilderPage({ quoteId, onBack }: QuoteBuilderPageProps) {
           due_date: dueDate || undefined,
         });
         setQuote(newQuote);
-        console.log('Created quote:', newQuote.quote_number);
       } else if (quote) {
         // Update existing quote
         const updated = await updateQuote(quote.id, {
@@ -77,7 +76,6 @@ export function QuoteBuilderPage({ quoteId, onBack }: QuoteBuilderPageProps) {
           due_date: dueDate || undefined,
         });
         setQuote(updated);
-        console.log('Updated quote:', updated.quote_number);
       }
     } catch (err) {
       setError('Failed to save quote');

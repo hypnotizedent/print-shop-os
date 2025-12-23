@@ -855,13 +855,6 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
 
   const visibleSizeColumns = getVisibleSizeColumns();
 
-  // Debug logging for size columns
-  useEffect(() => {
-    console.log('🔍 LineItemsTable - Items with sizes:', items.map(i => ({ id: i.id, sizes: i.sizes, totalQty: i.totalQuantity })));
-    console.log('🔍 LineItemsTable - Column config:', currentColumnConfig);
-    console.log('🔍 LineItemsTable - Visible size columns:', visibleSizeColumns.map(c => c.label));
-  }, [items, currentColumnConfig, visibleSizeColumns]);
-
   const toggleExpanded = (itemId: number) => {
     setExpandedItems((prev) => {
       const next = new Set(prev);
@@ -1619,11 +1612,6 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
   } | null>(null);
 
   const currentColumnConfig = columnConfig || DEFAULT_COLUMN_CONFIG;
-
-  // Debug logging
-  useEffect(() => {
-    console.log('OrderDetailPage mounted', { visualId, loading, error: error?.message, hasOrder: !!order });
-  }, [visualId, loading, error, order]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });

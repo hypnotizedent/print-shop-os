@@ -429,11 +429,6 @@ export function useOrderDetail(visualId: string | null) {
       }
       const data = await response.json()
 
-      // Debug: Log raw API response
-      console.log('🔍 Raw API Response for order:', visualId, data)
-      console.log('🔍 Line Items from API:', data.lineItems || data.line_items)
-      console.log('🔍 Customer from API:', data.customer)
-
       // Get order-level imprintMockups to distribute to imprints
       const orderImprintMockups = (data.imprintMockups || []).map((m: any) => ({
         id: m.id,
@@ -441,7 +436,6 @@ export function useOrderDetail(visualId: string | null) {
         name: m.name || 'Imprint Mockup',
         thumbnail_url: m.thumbnail_url || m.thumbnailUrl || null,
       }));
-      console.log('🖼️ Order-level imprintMockups:', orderImprintMockups);
 
       // Map API response to our type
       const orderDetail: OrderDetail = {
@@ -480,7 +474,6 @@ export function useOrderDetail(visualId: string | null) {
         lineItems: (data.lineItems || data.line_items || []).map((li: any) => {
           // Get imprints from API or create mock data for testing
           let imprints = (li.imprints || []).map((imp: any) => {
-            console.log('🔍 Mapping imprint:', imp);
             // Use imprint's own mockups if available, otherwise use order-level imprintMockups
             const imprintMockups = (imp.mockups || []).length > 0
               ? (imp.mockups || []).map((m: any) => ({
@@ -490,7 +483,6 @@ export function useOrderDetail(visualId: string | null) {
                   thumbnail_url: m.thumbnail_url || m.thumbnailUrl || null,
                 }))
               : orderImprintMockups;
-            console.log('🖼️ Imprint mockups assigned:', { imprintId: imp.id, mockups: imprintMockups });
 
             return {
               id: imp.id,
@@ -568,12 +560,6 @@ export function useOrderDetail(visualId: string | null) {
           };
         }),
       }
-
-      // Debug: Log mapped order detail
-      console.log('✅ Mapped OrderDetail:', orderDetail)
-      console.log('✅ Line Items count:', orderDetail.lineItems.length)
-      console.log('✅ Line Items with imprints:', orderDetail.lineItems.filter(li => li.imprints.length > 0).length)
-      console.log('✅ Line Items with mockups:', orderDetail.lineItems.filter(li => li.mockup !== null).length)
 
       setOrder(orderDetail)
     } catch (err) {
