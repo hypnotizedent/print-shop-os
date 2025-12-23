@@ -39,10 +39,35 @@ function mapQuoteStatus(status: string): string {
 // Normalize sizes from Quote format (uppercase keys) to Order format (lowercase)
 function normalizeSizes(sizes: Record<string, number> | null): OrderDetailLineItem['sizes'] {
   if (!sizes) {
-    return { xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, xxxl: 0, xxxxl: 0, xxxxxl: 0, other: 0 };
+    return {
+      // Baby/Toddler
+      '6m': 0, '12m': 0, '18m': 0, '24m': 0, '2t': 0, '3t': 0, '4t': 0, '5t': 0,
+      // Youth
+      yxs: 0, ys: 0, ym: 0, yl: 0, yxl: 0,
+      // Adult
+      xs: 0, s: 0, m: 0, l: 0, xl: 0, xxl: 0, xxxl: 0, xxxxl: 0, xxxxxl: 0, xxxxxx: 0,
+      // Other
+      other: 0
+    };
   }
 
   return {
+    // Baby/Toddler
+    '6m': sizes['6m'] || sizes['6M'] || 0,
+    '12m': sizes['12m'] || sizes['12M'] || 0,
+    '18m': sizes['18m'] || sizes['18M'] || 0,
+    '24m': sizes['24m'] || sizes['24M'] || 0,
+    '2t': sizes['2t'] || sizes['2T'] || 0,
+    '3t': sizes['3t'] || sizes['3T'] || 0,
+    '4t': sizes['4t'] || sizes['4T'] || 0,
+    '5t': sizes['5t'] || sizes['5T'] || 0,
+    // Youth
+    yxs: sizes['yxs'] || sizes['YXS'] || 0,
+    ys: sizes['ys'] || sizes['YS'] || 0,
+    ym: sizes['ym'] || sizes['YM'] || 0,
+    yl: sizes['yl'] || sizes['YL'] || 0,
+    yxl: sizes['yxl'] || sizes['YXL'] || 0,
+    // Adult
     xs: sizes['XS'] || sizes['xs'] || 0,
     s: sizes['S'] || sizes['s'] || 0,
     m: sizes['M'] || sizes['m'] || 0,
@@ -52,6 +77,8 @@ function normalizeSizes(sizes: Record<string, number> | null): OrderDetailLineIt
     xxxl: sizes['XXXL'] || sizes['3XL'] || sizes['xxxl'] || sizes['3xl'] || 0,
     xxxxl: sizes['XXXXL'] || sizes['4XL'] || sizes['xxxxl'] || sizes['4xl'] || 0,
     xxxxxl: sizes['XXXXXL'] || sizes['5XL'] || sizes['xxxxxl'] || sizes['5xl'] || 0,
+    xxxxxx: sizes['XXXXXX'] || sizes['6XL'] || sizes['xxxxxx'] || sizes['6xl'] || 0,
+    // Other
     other: sizes['other'] || sizes['Other'] || sizes['OTHER'] || 0,
   };
 }
@@ -135,6 +162,8 @@ export function transformQuoteToOrder(quoteData: any): QuoteAsOrder {
     email: quote.customer_email || null,
     phone: quote.customer_phone || null,
     company: quote.customer_company || null,
+    city: quote.customer_city || null,
+    state: quote.customer_state || null,
   };
 
   return {
