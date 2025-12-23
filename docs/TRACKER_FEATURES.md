@@ -1,13 +1,13 @@
 # Feature Tracker - ui-v3
 
 > Last Updated: December 22, 2025
-> Current Version: v2.5.0
+> Current Version: v2.6.0
 
 ---
 
 ## Upcoming Versions
 
-### v2.5.1 - Line Item CRUD
+### v2.6.1 - Line Item CRUD
 
 | Feature | Plan Doc | Priority | Status |
 |---------|----------|----------|--------|
@@ -15,14 +15,6 @@
 | Line Item Delete | `PLAN_NEXT_FEATURES.md` | HIGH | Pending API |
 
 **API Dependencies**: See `HANDOFF_RONNY_OPS_API.md`
-
-### v2.6.0 - File Management (Blocked by ronny-ops API)
-
-| Feature | Plan Doc | Priority | Status |
-|---------|----------|----------|--------|
-| Artwork Upload | `PLAN_NEXT_FEATURES.md` | MEDIUM | Pending API |
-
-**API Dependencies**: POST /api/orders/:id/artwork (MinIO upload)
 
 ### v2.7.0 - Edit & Polish
 
@@ -38,6 +30,7 @@
 
 | Version | Features | Date |
 |---------|----------|------|
+| v2.6.0 | Artwork upload with drag-drop (line items) | Dec 22, 2025 |
 | v2.5.0 | Imprint CRUD (add/edit/delete wired to API) | Dec 22, 2025 |
 | v2.4.0 | Unified global search with typeahead dropdown | Dec 22, 2025 |
 | v2.3.0 | Dynamic size columns (baby, youth, adult) | Dec 22, 2025 |

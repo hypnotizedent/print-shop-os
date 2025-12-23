@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useOrderDetail, useQuoteDetail, type OrderDetail, type OrderDetailLineItem, type LineItemImprint, type QuoteAsOrder } from '@/lib/hooks';
 import { convertToOrder } from '@/lib/quote-api';
 import { useKV } from '@github/spark/hooks';
@@ -47,7 +47,8 @@ import {
   Check,
   X,
   Upload,
-  Plus
+  Plus,
+  CircleNotch
 } from '@phosphor-icons/react';
 import { formatCurrency, formatDate, getAPIStatusColor, getAPIStatusLabel } from '@/lib/helpers';
 import { SizeBreakdown } from '@/lib/types';
@@ -362,6 +363,143 @@ function MockupUploadDialog({ open, onOpenChange, onUpload, title }: MockupUploa
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Inline artwork upload component for line items and imprints
+interface ArtworkUploadProps {
+  orderId: number;
+  lineItemId?: number;
+  currentMockup?: { id: string; url: string; thumbnail_url?: string; name?: string } | null;
+  onUploadComplete: () => void;
+  onImageClick?: (images: Array<{ url: string; name: string; id: string }>, index: number) => void;
+  size?: 'sm' | 'md';
+}
+
+function ArtworkUpload({ orderId, lineItemId, currentMockup, onUploadComplete, onImageClick, size = 'md' }: ArtworkUploadProps) {
+  const [isUploading, setIsUploading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const sizeClass = size === 'sm' ? 'w-7 h-7' : 'w-10 h-10';
+
+  const handleUpload = async (file: File) => {
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      if (lineItemId) {
+        formData.append('line_item_id', lineItemId.toString());
+      }
+
+      const response = await fetch(`https://mintprints-api.ronny.works/api/orders/${orderId}/artwork`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) throw new Error('Upload failed');
+
+      toast.success('Artwork uploaded');
+      onUploadComplete();
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error('Failed to upload file');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleDelete = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!currentMockup || !confirm('Delete this artwork?')) return;
+
+    try {
+      const response = await fetch(`https://mintprints-api.ronny.works/api/orders/${orderId}/artwork/${currentMockup.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) throw new Error('Delete failed');
+
+      toast.success('Artwork deleted');
+      onUploadComplete();
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error('Failed to delete file');
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleUpload(file);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleUpload(file);
+  };
+
+  // If has mockup, show it with delete option
+  if (currentMockup) {
+    return (
+      <div className="relative group">
+        <button
+          onClick={() => {
+            onImageClick?.([{
+              url: currentMockup.url,
+              name: currentMockup.name || 'Artwork',
+              id: currentMockup.id
+            }], 0);
+          }}
+          className={`${sizeClass} flex-shrink-0 rounded border border-border bg-card hover:border-primary hover:shadow-sm transition-all cursor-pointer overflow-hidden`}
+          title={currentMockup.name || 'Click to view'}
+        >
+          <img
+            src={currentMockup.thumbnail_url || currentMockup.url}
+            alt={currentMockup.name || 'Artwork'}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        </button>
+        <button
+          onClick={handleDelete}
+          className="absolute -top-1 -right-1 bg-destructive text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+          title="Delete artwork"
+        >
+          <X size={10} weight="bold" />
+        </button>
+      </div>
+    );
+  }
+
+  // No mockup - show upload zone
+  return (
+    <div
+      className={`${sizeClass} border border-dashed rounded flex items-center justify-center cursor-pointer transition-colors ${
+        isDragging ? 'border-primary bg-primary/10' : 'border-border hover:border-primary/50 hover:bg-muted/30'
+      }`}
+      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+      onDragLeave={() => setIsDragging(false)}
+      onDrop={handleDrop}
+      onClick={() => fileInputRef.current?.click()}
+      title="Click or drag to upload"
+    >
+      {isUploading ? (
+        <CircleNotch size={14} className="animate-spin text-muted-foreground" />
+      ) : (
+        <Upload size={14} className="text-muted-foreground/50" weight="bold" />
+      )}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,.pdf,.eps,.ai"
+        className="hidden"
+        onChange={handleFileSelect}
+      />
+    </div>
   );
 }
 
@@ -1111,33 +1249,14 @@ function LineItemsTable({ items, orderId, onImageClick, onRefetch }: LineItemsTa
                     {currentColumnConfig.color && renderEditableCell(item, 'color', 'left')}
                     {renderEditableCell(item, 'description', 'left')}
                     <td className="px-3 py-1.5 align-top text-center">
-                      <div className="h-7 flex items-center justify-center">
-                        {item.mockup ? (
-                          <button
-                            onClick={() => {
-                              if (item.mockup) {
-                                onImageClick?.([{
-                                  url: item.mockup.url,
-                                  name: item.mockup.name || 'Line item mockup',
-                                  id: item.mockup.id
-                                }], 0);
-                              }
-                            }}
-                            className="w-10 h-10 flex-shrink-0 rounded border border-border bg-card hover:border-primary hover:shadow-sm transition-all cursor-pointer overflow-hidden"
-                            title={item.mockup.name || 'Mockup'}
-                          >
-                            <img
-                              src={item.mockup.thumbnail_url || item.mockup.url}
-                              alt={item.mockup.name || 'Line item mockup'}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                              }}
-                            />
-                          </button>
-                        ) : (
-                          <span className="text-muted-foreground/30 text-xs">-</span>
-                        )}
+                      <div className="h-10 flex items-center justify-center">
+                        <ArtworkUpload
+                          orderId={orderId}
+                          lineItemId={item.id}
+                          currentMockup={item.mockup}
+                          onUploadComplete={onRefetch}
+                          onImageClick={onImageClick}
+                        />
                       </div>
                     </td>
                     {visibleSizeColumns.map(col => renderEditableCell(item, `size-${col.label}`, 'center'))}
