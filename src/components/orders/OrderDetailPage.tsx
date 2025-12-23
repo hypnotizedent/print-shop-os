@@ -1906,8 +1906,13 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
     );
   }
 
+  // Calculate total from line items if order total is missing/zero
+  const calculatedTotal = order.totalAmount > 0
+    ? order.totalAmount
+    : order.lineItems?.reduce((sum, li) => sum + (li.totalCost || 0), 0) || 0;
+
   const balance = order.amountOutstanding;
-  const paid = order.totalAmount - order.amountOutstanding;
+  const paid = calculatedTotal - order.amountOutstanding;
 
   return (
     <div className="space-y-3">
@@ -1950,7 +1955,7 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
                   ))}
                 </SelectContent>
               </Select>
-              <div className="text-xl font-semibold">{formatCurrency(order.totalAmount)}</div>
+              <div className="text-xl font-semibold">{formatCurrency(calculatedTotal)}</div>
             </div>
             <p className="text-xs text-muted-foreground">
               Balance:{' '}
@@ -2107,13 +2112,13 @@ export function OrderDetailPage({ visualId, onViewCustomer, mode = 'order', onCo
         <CardContent className="py-3">
           <div className="grid grid-cols-2 gap-x-8 gap-y-1 text-sm max-w-xs">
             <span className="text-muted-foreground">Subtotal</span>
-            <span className="text-right">{formatCurrency(order.totalAmount - order.salesTax)}</span>
+            <span className="text-right">{formatCurrency(calculatedTotal - order.salesTax)}</span>
 
             <span className="text-muted-foreground">Tax</span>
             <span className="text-right">{formatCurrency(order.salesTax)}</span>
 
             <span className="text-muted-foreground font-medium pt-1 border-t border-border">Total</span>
-            <span className="text-right font-medium pt-1 border-t border-border">{formatCurrency(order.totalAmount)}</span>
+            <span className="text-right font-medium pt-1 border-t border-border">{formatCurrency(calculatedTotal)}</span>
 
             <span className="text-muted-foreground">Paid</span>
             <span className="text-right text-green-400">{formatCurrency(paid)}</span>
