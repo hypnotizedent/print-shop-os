@@ -9,7 +9,7 @@
 
 | Step | Status | Notes |
 |------|--------|-------|
-| Changes committed | DONE | Commit aa62f68 |
+| Changes committed | DONE | Commit ecaab71 (orders/quotes separation) |
 | Pushed to GitHub | DONE | main branch |
 | Spark auto-sync | PENDING | Check Spark dashboard |
 | Published in Spark | PENDING | Click "Publish" button |
@@ -87,6 +87,26 @@ curl -s https://mintprints.hypnotized.link | grep -o 'v[0-9.]*'
 # Test API connectivity
 curl -s "https://mintprints-api.ronny.works/api/health" | jq
 ```
+
+---
+
+## Critical Fixes (Dec 23)
+
+### 8. Orders/Quotes Separation
+- **Status:** DEPLOYED - NEEDS VERIFICATION
+- **Files:** `src/lib/hooks.ts`, `src/components/orders/OrdersList.tsx`, `src/components/quotes/QuotesListPage.tsx`
+- **Expected:**
+  - Orders page: Shows invoices ONLY, NOT quotes (should exclude QUOTE, DRAFT, Quote Out For Approval)
+  - Quotes page: Shows quote-status orders (~147+ quotes visible from first 500 orders)
+  - Quotes page: Uses table layout matching Orders page
+- [ ] Verified: Orders page excludes quotes
+- [ ] Verified: Quotes page shows quotes with table layout
+
+### 9. Reports Page
+- **Status:** ALREADY WIRED
+- **File:** `src/pages/ReportsPage.tsx`
+- **API:** `/api/production-stats` returning 4,661 quotes, 8,228 complete, 12,905 total
+- [ ] Verified: Reports page shows production stats
 
 ---
 
