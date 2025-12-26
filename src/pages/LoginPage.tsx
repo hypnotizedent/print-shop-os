@@ -19,7 +19,8 @@ export function LoginPage() {
         setLoading(true)
 
         try {
-            const res = await fetch('/api/auth/admin/login', {
+            const API_URL = import.meta.env.VITE_API_URL || 'https://mintprints-api.ronny.works'
+            const res = await fetch(`${API_URL}/api/admin/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),

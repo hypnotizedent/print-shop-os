@@ -1160,3 +1160,149 @@ export function useSupplierStatus() {
 
   return { suppliers, loading, error, refetch: load }
 }
+
+// =============================================================================
+// REPORT TYPES
+// =============================================================================
+
+export interface ReportSummary {
+  total_orders: number
+  quotes: number
+  active_jobs: number
+  completed: number
+  total_revenue: number
+  avg_order_value: number
+  total_outstanding: number
+  total_collected: number
+}
+
+export interface TopCustomer {
+  id: number
+  name: string
+  email: string | null
+  company: string | null
+  order_count: number
+  total_spent: number
+  avg_order: number
+  last_order: string | null
+  status: 'active' | 'inactive' | 'at_risk'
+}
+
+// =============================================================================
+// useReportSummary - Fetch executive summary (requires auth)
+// =============================================================================
+
+export function useReportSummary(options?: { startDate?: string; endDate?: string }) {
+  const [summary, setSummary] = useState<ReportSummary | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const token = localStorage.getItem('mint_admin_token')
+      if (!token) {
+        throw new Error('Not authenticated')
+      }
+
+      const params = new URLSearchParams()
+      if (options?.startDate) params.set('start_date', options.startDate)
+      if (options?.endDate) params.set('end_date', options.endDate)
+
+      const url = `${API_BASE_URL}/api/reports/summary${params.toString() ? '?' + params : ''}`
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Session expired')
+        }
+        throw new Error(`API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      setSummary({
+        total_orders: parseInt(data.summary?.total_orders || '0', 10),
+        quotes: parseInt(data.summary?.quotes || '0', 10),
+        active_jobs: parseInt(data.summary?.active_jobs || '0', 10),
+        completed: parseInt(data.summary?.completed || '0', 10),
+        total_revenue: parseFloat(data.summary?.total_revenue || '0'),
+        avg_order_value: parseFloat(data.summary?.avg_order_value || '0'),
+        total_outstanding: parseFloat(data.summary?.total_outstanding || '0'),
+        total_collected: parseFloat(data.summary?.total_collected || '0'),
+      })
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch report summary'))
+    } finally {
+      setLoading(false)
+    }
+  }, [options?.startDate, options?.endDate])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  return { summary, loading, error, refetch: load }
+}
+
+// =============================================================================
+// useTopCustomers - Fetch top customers by revenue (requires auth)
+// =============================================================================
+
+export function useTopCustomers(options?: { limit?: number }) {
+  const [customers, setCustomers] = useState<TopCustomer[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<Error | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const token = localStorage.getItem('mint_admin_token')
+      if (!token) {
+        throw new Error('Not authenticated')
+      }
+
+      const params = new URLSearchParams()
+      if (options?.limit) params.set('limit', String(options.limit))
+
+      const url = `${API_BASE_URL}/api/reports/top-customers${params.toString() ? '?' + params : ''}`
+      const response = await fetch(url, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Session expired')
+        }
+        throw new Error(`API error: ${response.status}`)
+      }
+
+      const result = await response.json()
+      const mapped: TopCustomer[] = (result.customers || []).map((c: any) => ({
+        id: c.id || 0,
+        name: c.name || 'Unknown',
+        email: c.email || null,
+        company: c.company || null,
+        order_count: parseInt(c.order_count || '0', 10),
+        total_spent: parseFloat(c.total_spent || '0'),
+        avg_order: parseFloat(c.avg_order || '0'),
+        last_order: c.last_order || null,
+        status: c.status || 'active',
+      }))
+      setCustomers(mapped)
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error('Failed to fetch top customers'))
+    } finally {
+      setLoading(false)
+    }
+  }, [options?.limit])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  return { customers, loading, error, refetch: load }
+}
