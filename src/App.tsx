@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { Package, Users, ChartLine, ArrowLeft, FileText, Sparkle, TShirt, Gear } from '@phosphor-icons/react';
+import { Package, Users, ChartLine, ArrowLeft, FileText, Sparkle, TShirt, Gear, SignOut } from '@phosphor-icons/react';
+import { useAuth } from './contexts/AuthContext';
+import { LoginPage } from './pages/LoginPage';
 import { Transaction, View, OrderStatus, ImprintMethod } from '@/lib/types';
 import { useOrders, useCustomers } from '@/lib/hooks';
 import { type OrderStatus as ApiOrderStatus } from '@/lib/api-adapter';
@@ -60,13 +62,31 @@ function mapImprintLocation(location: string): 'Front' | 'Back' | 'Left Chest' |
 }
 
 function App() {
+  const { isAuthenticated, loading: authLoading, logout, user } = useAuth();
   const { orders: apiOrders, loading: ordersLoading, error: ordersError } = useOrders();
   const { customers: apiCustomers, loading: customersLoading, error: customersError } = useCustomers();
-  
+
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [selectedQuoteId, setSelectedQuoteId] = useState<string | null>(null);
+
+  // Show auth loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <LoginPage />;
+  }
 
   // Show loading state while data is being fetched
   if (ordersLoading || customersLoading) {
@@ -358,14 +378,14 @@ function App() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </Button>
-            <Button 
+            <Button
               variant="ghost"
               size="sm"
               className="h-8 w-8 p-0"
+              onClick={logout}
+              title="Sign out"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-              </svg>
+              <SignOut weight="bold" className="w-5 h-5" />
             </Button>
             <Button 
               variant={currentView === 'settings' ? 'secondary' : 'ghost'}
