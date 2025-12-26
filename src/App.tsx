@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Package, Users, ChartLine, ArrowLeft, FileText, Sparkle, TShirt, Gear, SignOut, Envelope, List, X } from '@phosphor-icons/react';
+import { Package, Users, ChartLine, ArrowLeft, FileText, Sparkle, TShirt, Gear, SignOut, Envelope, List, X, Brain } from '@phosphor-icons/react';
 import { useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { Transaction, View, OrderStatus, ImprintMethod } from '@/lib/types';
